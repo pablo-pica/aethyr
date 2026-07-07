@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+@theme {
+  --color-space-950: #030712;
+  --color-space-900: #090d16;
+  --color-space-800: #111827;
+  --color-space-700: #1f2937;
+  
+  --color-primary-indigo: #6366f1;
+  --color-primary-indigo-dark: #4f46e5;
+  --color-primary-blue: #3b82f6;
+  --color-primary-cyan: #06b6d4;
+  
+  --font-sans: "Inter", var(--font-geist-sans), sans-serif;
+  --font-display: "Outfit", var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@layer utilities {
+  /* Glassmorphism Styles */
+  .glass-panel {
+    background-color: rgba(9, 13, 22, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(31, 41, 55, 0.5);
+  }
+  
+  .glass-card {
+    background-color: rgba(17, 24, 39, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(31, 41, 55, 0.4);
+    box-shadow: 0 4px 30px rgba(3, 7, 18, 0.2);
+  }
+
+  .glass-card-interactive {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card-interactive:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.1);
+  }
+
+  /* Neon Text & Background Gradients */
+  .text-glow-primary {
+    background: linear-gradient(to right, #6366f1, #3b82f6, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .neon-button {
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    box-shadow: 0 0 15px rgba(79, 70, 229, 0.35);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .neon-button:hover {
+    box-shadow: 0 0 22px rgba(79, 70, 229, 0.55);
+  }
+
+  .neon-button:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.2));
+  }
+  50% {
+    opacity: .8;
+    filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.6));
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Safe areas layout setup */
+:root {
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+}
+
+body {
+  background-color: #030712;
+  color: #f9fafb;
+  min-height: 100vh;
+  margin: 0;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #030712;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
