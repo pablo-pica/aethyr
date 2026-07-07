@@ -162,7 +162,7 @@ export default function Dashboard() {
         
         {/* App Header */}
         <header className="px-6 pt-[calc(1.25rem+var(--sat))] pb-4 border-b border-space-700/30 flex items-center justify-between bg-space-900/40 backdrop-blur-md sticky top-0 z-30">
-          <div className="flex items-center gap-2 select-none">
+          <div className="flex items-center gap-2 select-none min-w-0">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary-indigo to-primary-cyan flex items-center justify-center font-display font-black text-white text-base shadow-lg shadow-primary-indigo/20">
               Æ
             </div>
@@ -194,7 +194,7 @@ export default function Dashboard() {
               {/* Wallet Info Display */}
               {isConnected && address && (
                 <div className="p-4 rounded-2xl glass-card flex items-center justify-between border-primary-indigo/20 bg-[linear-gradient(135deg,_rgba(99,102,241,0.05)_0%,_rgba(9,13,22,0.6)_100%)]">
-                  <div className="space-y-1">
+                  <div className="space-y-1 min-w-0">
                     <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
                       Available Balance
                     </span>
@@ -242,7 +242,7 @@ export default function Dashboard() {
                   {txHash && (
                     <div className="bg-space-950/60 p-3 rounded-xl border border-space-800 flex flex-col gap-2">
                       <div className="flex items-center justify-between text-[10px] font-mono">
-                        <span className="text-slate-400">TX Hash:</span>
+                        <span className="text-slate-400 min-w-0">TX Hash:</span>
                         <span className="text-slate-200 font-bold">{txHash.slice(0, 10)}...{txHash.slice(-10)}</span>
                       </div>
                       <a
@@ -369,7 +369,7 @@ export default function Dashboard() {
 
               {/* AI assist preview bar */}
               <div className="p-4 rounded-xl border border-space-700/20 bg-space-900/20 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <Sparkles className="w-4 h-4 text-primary-cyan animate-pulse-glow" />
                   <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                     AI Assist Enabled
@@ -385,7 +385,7 @@ export default function Dashboard() {
           {activeTab === "activity" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1">
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-0">
                   Transaction History
                 </h3>
                 <span className="text-[10px] text-slate-500 font-mono flex items-center gap-1">
@@ -401,7 +401,7 @@ export default function Dashboard() {
                     key={tx.id}
                     className="p-4 rounded-2xl glass-card border-space-700/20 hover:border-space-700/40 transition-all flex justify-between items-start"
                   >
-                    <div className="space-y-2">
+                    <div className="space-y-2 min-w-0">
                       <div className="flex items-center gap-2">
                         <span
                           className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
@@ -424,7 +424,11 @@ export default function Dashboard() {
                       {tx.txHash && (
                         <div className="flex items-center gap-1 text-[9px] font-mono text-slate-400">
                           <span>Hash:</span>
-                          <span className="text-slate-300">{tx.txHash}</span>
+                          <span className="text-slate-300">
+                            {tx.txHash.length > 8
+                              ? `${tx.txHash.slice(0, 4)}...${tx.txHash.slice(-4)}`
+                              : tx.txHash}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -464,7 +468,7 @@ export default function Dashboard() {
               {/* Network Config */}
               <div className="p-4 rounded-xl bg-space-900/40 border border-space-700/20 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs font-semibold text-slate-200">Network Environment</p>
                     <p className="text-[10px] text-slate-400">Current active blockchain rail</p>
                   </div>
@@ -520,7 +524,7 @@ export default function Dashboard() {
 
               {/* AI assist switch */}
               <div className="p-4 rounded-xl bg-space-900/40 border border-space-700/20 flex items-center justify-between">
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs font-semibold text-slate-200">AI Intent Assist</p>
                   <p className="text-[10px] text-slate-400">Plain text payment commands parsing</p>
                 </div>

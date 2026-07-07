@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import Dashboard from "./page";
 
-describe("Dashboard Page Background Style Tests", () => {
+describe("Dashboard Page Background Style & Layout Tests", () => {
   it("should export a function for Dashboard", () => {
     expect(typeof Dashboard).toBe("function");
   });
@@ -16,5 +16,24 @@ describe("Dashboard Page Background Style Tests", () => {
     // The outer wrapper div should have the updated responsive background classes
     expect(fileContent).toContain("md:bg-slate-900");
     expect(fileContent).toContain("md:bg-none");
+  });
+
+  it("should truncate long transaction hashes in the activity feed to fit mobile layout", () => {
+    const filePath = path.resolve(__dirname, "./page.tsx");
+    const fileContent = fs.readFileSync(filePath, "utf-8");
+
+    // Check that transaction hashes in the activity list are sliced in the middle
+    expect(fileContent).toContain("tx.txHash.slice(0, 4)");
+    expect(fileContent).toContain("tx.txHash.slice(-4)");
+  });
+
+  it("should constrain the left-hand flexbox children with min-w-0 to prevent content overflow", () => {
+    const filePath = path.resolve(__dirname, "./page.tsx");
+    const fileContent = fs.readFileSync(filePath, "utf-8");
+
+    // The left child of a transaction history item flexbox must have min-w-0
+    expect(fileContent).toContain('className="space-y-2 min-w-0"');
+    // The left child of the network environment card flexbox must have min-w-0
+    expect(fileContent).toContain('className="min-w-0"');
   });
 });
