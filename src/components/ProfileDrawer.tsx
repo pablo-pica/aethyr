@@ -38,7 +38,7 @@ export default function ProfileDrawer({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="absolute inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-space-950/80 backdrop-blur-sm transition-opacity"

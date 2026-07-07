@@ -156,7 +156,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-space-950 flex items-center justify-center p-0 md:p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-indigo/5 via-space-950 to-space-950">
+    <div className="min-h-screen bg-space-950 md:bg-slate-900 flex items-center justify-center p-0 md:p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-indigo/5 via-space-950 to-space-950 md:bg-none">
       {/* Mobile Device Mockup Frame */}
       <div className="w-full md:max-w-[420px] md:h-[840px] md:rounded-[40px] md:border md:border-space-700/50 md:shadow-[0_0_50px_rgba(0,0,0,0.8)] bg-space-950/80 backdrop-blur-xl relative overflow-hidden flex flex-col h-screen">
         
