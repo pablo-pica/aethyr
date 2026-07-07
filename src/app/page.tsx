@@ -18,7 +18,10 @@ import {
   Search,
 } from "lucide-react";
 import { useFreighter } from "@/hooks/useFreighter";
-import WalletConnect from "@/components/WalletConnect";
+import dynamic from "next/dynamic";
+const WalletConnect = dynamic(() => import("@/components/WalletConnect"), {
+  ssr: false,
+});
 import BottomNav, { TabId } from "@/components/BottomNav";
 import ProfileDrawer from "@/components/ProfileDrawer";
 import { validateStellarAddress } from "@/lib/utils";
