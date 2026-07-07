@@ -125,7 +125,7 @@ Aethyr is designed to feel like a native mobile application. The interface scale
 
 ### 🟡 Yellow Belt Viewports (Multi-wallet & Smart Contract Call)
 
-| Multi-Wallet Selector (screen5.png) | Soroban Contract Transaction Status (screen6.png) |
+| Multi-Wallet Selector | Soroban Contract Transaction Status |
 |:---:|:---:|
 | <img src="./docs/assets/screen5.png" width="220" alt="Multi-wallet Modal Selector"> | <img src="./docs/assets/screen6.png" width="220" alt="Soroban Routed Tx Status"> |
 
@@ -209,7 +209,7 @@ gantt
 * Developed, compiled, and deployed the core `aethyr-router` contract in Rust to Stellar Testnet:
   * **Contract Address**: `CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO`
   * **Deployment Tx Hash**: [`ed188ca785a3c129d2c450c387a094f44657ec63cad4be87e4a035a9646f4103`](https://stellar.expert/explorer/testnet/tx/ed188ca785a3c129d2c450c387a094f44657ec63cad4be87e4a035a9646f4103)
-  * **Frontend Contract Invocation Tx Hash**: `cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623` (e.g. `1234abcd...`)
+  * **Frontend Contract Invocation Tx Hash**: `cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623`
 * Integrated the **StellarWalletsKit** selector modal to support Albedo, xBull, and Freighter connections.
 * Mapped contract call states (pending, success, failure) with comprehensive UI toasts.
 * Supported error handling for 3 key transaction failures (User Rejected, Wallet Missing, Insufficient Balance).
