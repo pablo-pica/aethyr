@@ -51,7 +51,7 @@ Status: Active
 - [x] Handle 3 error types (Wallet Not Found, Rejected, Insufficient) `[AI]`
 - [x] Render transaction pending/success/fail states `[AI]`
 - [ ] Verify 2+ meaningful commits are pushed to main `[AI]`
-- [ ] Add contract address + verified tx hash to README `[AI]`
+- [x] Add contract address + verified tx hash to README `[AI]`
 - [ ] Collect 2 Yellow Belt screenshots and embed in README `[YOU]`
 - [ ] Submit Yellow Belt on Rise In dashboard `[YOU]`
 
