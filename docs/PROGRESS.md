@@ -7,9 +7,9 @@ This is a living document updated autonomously by agents at the end of each task
 ## ⚡ Active Task
 
 ```yaml
-Current Task: "Phase 2 (Yellow Belt) Implementation"
-Assigned Agent: Builder
-Status: Active
+Current Task: "Phase 2 (Yellow Belt) Audit"
+Assigned Agent: Checker
+Status: "Warning: Missing Assets"
 ```
 
 ---
@@ -50,7 +50,7 @@ Status: Active
 - [x] Integrate contract call function on the frontend `[AI]`
 - [x] Handle 3 error types (Wallet Not Found, Rejected, Insufficient) `[AI]`
 - [x] Render transaction pending/success/fail states `[AI]`
-- [ ] Verify 2+ meaningful commits are pushed to main `[AI]`
+- [x] Verify 2+ meaningful commits are pushed to main `[AI]`
 - [x] Add contract address + verified tx hash to README `[AI]`
 - [ ] Collect 2 Yellow Belt screenshots and embed in README `[YOU]`
 - [ ] Submit Yellow Belt on Rise In dashboard `[YOU]`
@@ -84,7 +84,10 @@ Status: Active
 
 ## ⚠️ Warning Logs
 
-*No active warnings. The codebase is fully compliant with the Phase 1: White Belt requirements.*
+* **Missing Submission Assets**: The following user-dependent assets required for the Yellow Belt submission are missing and must be captured and documented:
+  * `docs/assets/screen5.png` (Screenshot showing the multi-wallet modal with at least 2 connection options).
+  * `docs/assets/screen6.png` (Screenshot showing transaction feedback for the contract call).
+  * Transaction hash of a successful contract invocation in `README.md` (only the contract address and deployment transaction hash are currently present).
 
 ---
 
@@ -105,4 +108,5 @@ Status: Active
 - **Builder**: Added `.agents/` and `docs/` folders to `.gitignore` file and verified all 9/9 Vitest tests pass.
 - **Checker**: Audited Phase 1 (White Belt) compliance. Verified static files, hooks, components, and layout files. Verified git logs contain 22 commits (exceeding the 2+ target). Ran frontend test suite and confirmed 9/9 tests passed. Verified Vercel deployment is live at https://aethyr-pica.vercel.app/ and correctly configured. Codebase is fully compliant with White Belt requirements. No warnings.
 - **Builder**: Implemented Yellow Belt requirements: created useStellarWallet hook with StellarWalletsKit multi-wallet support, integrated Soroban routed payment contract calls, added transaction type toggles in Send Form, resolved Vitest compilation issues via mocking, and ensured Next.js production builds compile cleanly.
+- **Checker**: Audited codebase against Yellow Belt Requirements. Verified Rust contract layout and Cargo configs. Checked npm dependencies in package.json. Verified git logs contain conventional commits and exceed the 2+ target. Ran Vitest frontend tests (9/9 passed) and Cargo contract tests (3/3 passed). Noted that `screen5.png` and `screen6.png` are missing, and that the transaction hash of a successful contract invocation is not yet in README.md. Updated progress status to 'Warning: Missing Assets'.
 
