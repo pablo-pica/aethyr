@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   SendHorizontal,
   Coins,
@@ -71,6 +71,24 @@ export default function Dashboard() {
   const [slippage, setSlippage] = useState("1.0");
   const [isAiEnabled, setIsAiEnabled] = useState(true);
   const [network, setNetwork] = useState("Testnet");
+
+  // Toast Notification State & Action
+  const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "error" | "info" }[]>([]);
+
+  const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
+    const id = `toast-${Date.now()}`;
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4500);
+  }, []);
+
+  // Listen to connection errors
+  useEffect(() => {
+    if (walletError) {
+      showToast(walletError, "error");
+    }
+  }, [walletError, showToast]);
 
   // Dynamic Transaction Log
   const [transactions, setTransactions] = useState<TransactionItem[]>([
@@ -146,6 +164,7 @@ export default function Dashboard() {
 
       setTxHash(hash);
       setTxStatus("success");
+      showToast("Transaction submitted successfully!", "success");
       
       // Add transaction to the activity log dynamically
       const newTx: TransactionItem = {
@@ -169,8 +188,10 @@ export default function Dashboard() {
       setAmount("");
     } catch (err: any) {
       console.error(err);
-      setTxError(err.message || "Transaction failed or user rejected the signing request.");
+      const errMsg = err.message || "Transaction failed or user rejected the signing request.";
+      setTxError(errMsg);
       setTxStatus("failed");
+      showToast(errMsg, "error");
     } finally {
       setSendLoading(false);
     }
@@ -602,6 +623,27 @@ export default function Dashboard() {
 
         {/* Bottom Navigation */}
         <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+
+        {/* Toast Notifications Container */}
+        <div className="absolute top-[calc(5rem+var(--sat))] right-4 z-40 flex flex-col gap-2 pointer-events-none max-w-[280px]">
+          {toasts.map((toast) => (
+            <div
+              key={toast.id}
+              className={`p-3 rounded-xl shadow-lg border text-[10px] font-semibold flex items-center gap-2 pointer-events-auto backdrop-blur-md transition-all duration-300 animate-slide-in ${
+                toast.type === "success"
+                  ? "bg-emerald-950/85 border-emerald-500/20 text-slate-100 shadow-emerald-500/5"
+                  : toast.type === "error"
+                  ? "bg-red-950/85 border-red-500/20 text-slate-100 shadow-red-500/5"
+                  : "bg-space-900/85 border-space-700/20 text-slate-100"
+              }`}
+            >
+              {toast.type === "success" && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+              {toast.type === "error" && <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />}
+              {toast.type === "info" && <AlertCircle className="w-3.5 h-3.5 text-primary-indigo shrink-0" />}
+              <span>{toast.message}</span>
+            </div>
+          ))}
+        </div>
 
         {/* Slide-out Profile Drawer */}
         <ProfileDrawer
