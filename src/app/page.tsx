@@ -625,7 +625,7 @@ export default function Dashboard() {
         <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {/* Toast Notifications Container */}
-        <div className="absolute top-[calc(5rem+var(--sat))] right-4 z-40 flex flex-col gap-2 pointer-events-none max-w-[280px]">
+        <div className="absolute bottom-[calc(5.5rem+var(--sab))] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2 pointer-events-none w-full max-w-[320px] px-4">
           {toasts.map((toast) => (
             <div
               key={toast.id}
