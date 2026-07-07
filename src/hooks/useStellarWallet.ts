@@ -30,7 +30,7 @@ export interface WalletState {
   isLoading: boolean;
 }
 
-export function parseWalletError(err: any): string {
+export function parseWalletError(err: any, context: "connect" | "transaction" = "transaction"): string {
   const msg = err.message || String(err);
   if (
     msg.includes("not installed") || 
@@ -47,7 +47,9 @@ export function parseWalletError(err: any): string {
     msg.includes("Signing failed") ||
     msg.includes("User closed")
   ) {
-    return "Transaction Rejected: The request was rejected by the user.";
+    return context === "connect"
+      ? "Connection Cancelled: The connection request was cancelled by the user."
+      : "Transaction Rejected: The request was rejected by the user.";
   }
   if (
     msg.includes("Insufficient") || 
@@ -148,7 +150,7 @@ export function useStellarWallet() {
       console.error("Connect failed:", err);
       setState((prev) => ({
         ...prev,
-        error: parseWalletError(err),
+        error: parseWalletError(err, "connect"),
         isLoading: false,
       }));
     }
@@ -222,7 +224,7 @@ export function useStellarWallet() {
       return result;
     } catch (err: any) {
       console.error("Payment failed:", err);
-      throw new Error(parseWalletError(err));
+      throw new Error(parseWalletError(err, "transaction"));
     }
   }, [checkConnection]);
 
@@ -334,7 +336,7 @@ export function useStellarWallet() {
       };
     } catch (err: any) {
       console.error("Route payment failed:", err);
-      throw new Error(parseWalletError(err));
+      throw new Error(parseWalletError(err, "transaction"));
     }
   }, [checkConnection]);
 
