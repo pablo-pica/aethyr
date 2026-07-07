@@ -119,7 +119,7 @@ Here are the key implementation files:
 
 Aethyr is designed to feel like a native mobile application. The interface scales to a true full-bleed layout on mobile devices, and displays inside a mock phone shell on desktop monitors.
 
-| Wallet Connection | Intent Parsing | Route Optimization | Transaction Receipt |
+| Wallet Connection | Wallet Details | Route Optimization | Transaction Receipt |
 |:---:|:---:|:---:|:---:|
 | <img src="./docs/assets/screen1.png" width="200" alt="Connect"> | <img src="./docs/assets/screen2.png" width="200" alt="AI Assist"> | <img src="./docs/assets/screen3.png" width="200" alt="Routing"> | <img src="./docs/assets/screen4.png" width="200" alt="Receipt"> |
 
