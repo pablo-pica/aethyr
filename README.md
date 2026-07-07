@@ -185,9 +185,9 @@ gantt
     title Aethyr Development Roadmap
     dateFormat  YYYY-MM-DD
     section Completed
-    White Belt :active, 2026-07-01, 2026-07-07
+    White Belt :2026-07-01, 2026-07-07
+    Yellow Belt (Soroban Contracts) :active, 2026-07-08, 2026-07-15
     section Planned
-    Yellow Belt (Soroban Contracts) :2026-07-08, 2026-07-15
     Orange Belt (Escrow & Multi-wallet) :2026-07-16, 2026-07-30
     Green Belt (SEP Standards) :2026-08-01, 2026-08-15
     Blue Belt (DEX Auto Routing) :2026-08-16, 2026-08-31
@@ -199,11 +199,13 @@ gantt
 * Glassmorphic Profile Drawer side container with full responsive mockup.
 * Completed 9/9 Vitest test suite with active pre-commit security scans.
 
-### 🟡 Yellow Belt: Soroban Contracts
-* Develop, compile, and deploy the core `aethyr-router` contract in Rust to Stellar Testnet.
-* Integrate the **StellarWalletsKit** selector modal to support Albedo, xBull, and Freighter connections.
-* Map contract call states (pending, success, failure) with comprehensive UI toasts.
-* Support error handling for 3 key transaction failures (User Rejected, Wallet Missing, Insufficient Balance).
+### 🟡 Yellow Belt: Soroban Contracts (Completed)
+* Developed, compiled, and deployed the core `aethyr-router` contract in Rust to Stellar Testnet:
+  * **Contract Address**: `CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO`
+  * **Deployment Tx Hash**: [`ed188ca785a3c129d2c450c387a094f44657ec63cad4be87e4a035a9646f4103`](https://stellar.expert/explorer/testnet/tx/ed188ca785a3c129d2c450c387a094f44657ec63cad4be87e4a035a9646f4103)
+* Integrated the **StellarWalletsKit** selector modal to support Albedo, xBull, and Freighter connections.
+* Mapped contract call states (pending, success, failure) with comprehensive UI toasts.
+* Supported error handling for 3 key transaction failures (User Rejected, Wallet Missing, Insufficient Balance).
 
 ### 🟠 Orange Belt: Escrow & Multi-wallet Integration
 * Create the `aethyr-escrow` contract with inter-contract calling logic (Router ↔ Escrow).

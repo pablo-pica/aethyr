@@ -44,7 +44,7 @@ done
 if [ "$RUN_RUST" = true ]; then
     echo "🦀 Rust changes detected. Running Soroban tests..."
     if [ -d "contracts" ]; then
-        (cd contracts && cargo test)
+        (cd contracts/aethyr-router && cargo test)
         if [ $? -ne 0 ]; then
             echo "${RED}❌ ERROR: Rust tests failed! Commit aborted.${NC}"
             exit 1
