@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Wallet, Loader2 } from "lucide-react";
 
 interface WalletConnectProps {
@@ -18,15 +18,22 @@ export default function WalletConnect({
   openDrawer,
   isLoading,
 }: WalletConnectProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const truncateAddress = (addr: string) => {
     if (!addr) return "";
     return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
   };
 
-  if (isLoading) {
+  // Render a loading state during server-side rendering and initial client hydration
+  if (!mounted || isLoading) {
     return (
       <button
-        disabled
+        disabled={true}
         className="h-10 px-4 rounded-xl bg-space-800 border border-space-700/50 flex items-center gap-2 text-slate-400 text-xs font-semibold"
       >
         <Loader2 className="w-4 h-4 animate-spin text-primary-indigo" />
