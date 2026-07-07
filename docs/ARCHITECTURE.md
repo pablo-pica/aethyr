@@ -161,20 +161,35 @@ For real-world cash-in and cash-out operations, Aethyr integrates with the Stell
 
 ---
 
-## 📱 Progressive Web App (PWA) Design
+## 📱 Progressive Web App (PWA) Design & Navigation
 
-To fulfill the mobile-first UX requirement, Aethyr is structured as an installable PWA:
+To fulfill the mobile-first UX requirement, Aethyr is structured as an installable PWA resembling a native app. The interface uses a single-screen layout with an dynamic App Shell:
 
-1. **Service Worker**: Implemented using `serwist` or `next-pwa` for background caching of static shells, assets, and offline fallback screens.
-2. **Web App Manifest (`manifest.json`)**: Configures display mode to `standalone`, sets theme colors (`#000000` dark mode theme), and defines homescreen icons.
-3. **Safe Viewport Layout**:
-   - Built with Tailwind utility classes.
-   - Notch and status bar padding handled using:
-     ```css
-     padding-top: env(safe-area-inset-top);
-     padding-bottom: env(safe-area-inset-bottom);
-     ```
-   - Main dashboard enclosed within a **mobile mockup frame** on large screens (desktop view), behaving as a native app interface on true mobile viewports.
+### 1. App Shell & Bottom Navigation
+A sticky, touch-friendly **Bottom Navigation Bar** manages the primary routing views. It sits below a persistent header and handles view state transitions smoothly:
+* **🔁 Send / Swap Tab (Active)**: The core multi-hop payment router, input forms, and AI Smart Assist bar.
+* **📜 Activity Tab**: A list of current and historical transaction entries (pending, active, and completed on-chain escrow locks) with status badges and StellarExpert links.
+* **⚙️ Settings Tab**: User-configurable preferences (slippage tolerance, network toggles, custom gas limits, and AI voice activation).
+
+### 2. Header & Profile Drawer
+The top app header is persistent across all views:
+* **Left**: Aethyr branding.
+* **Right**: The **Wallet Profile Button**. Tapping this slides open a glassmorphic **Profile Drawer** from the right, containing:
+  - Connected wallet address (truncated with one-tap clipboard copy).
+  - Consolidated multi-token balance list (XLM, USDC, Mock PHP, Mock NGN).
+  - Quick-fund developer faucet link (Friendbot).
+  - "Disconnect Wallet" action.
+
+### 3. Service Worker & PWA Infrastructure
+* **Caching**: Powered by `@serwist/next` for offline asset rendering.
+* **Manifest (`public/manifest.json`)**: Configured for `standalone` display mode, a `#030712` theme color, and a `black-translucent` mobile status bar.
+* **Safe Viewport Layout**:
+  - Notch padding dynamically calculated via CSS variables:
+    ```css
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    ```
+  - On desktop screens, the dApp is rendered inside a centered mobile mockup frame (`max-width: 420px`). On mobile devices, it scales to a true full-bleed native layout.
 
 ---
 

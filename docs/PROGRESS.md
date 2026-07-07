@@ -38,7 +38,7 @@ End Time: 2026-07-07T14:55:00+08:00
 - [ ] Send XLM transaction on Testnet `[AI]`
 - [ ] Show transaction success/failure states `[AI]`
 - [ ] Display transaction hash or confirmation message `[AI]`
-- [ ] Verify PWA mobile container shell layout `[AI]`
+- [ ] Verify PWA mobile container shell layout (Header & BottomNav placeholders) `[AI]`
 - [ ] Write White Belt README template documentation `[AI]`
 - [ ] Deploy initial build to Vercel `[YOU]`
 - [ ] Collect 4 required screenshots and embed in README `[YOU]`
@@ -47,7 +47,7 @@ End Time: 2026-07-07T14:55:00+08:00
 ### 🟡 Phase 2: Yellow Belt (Level 2)
 - [ ] Write Soroban routing contract in Rust `[AI]`
 - [ ] Deploy contract to Stellar Testnet `[AI]`
-- [ ] Integrate StellarWalletsKit multi-wallet modal `[AI]`
+- [ ] Integrate StellarWalletsKit multi-wallet modal inside Profile Drawer `[AI]`
 - [ ] Integrate contract call function on the frontend `[AI]`
 - [ ] Handle 3 error types (Wallet Not Found, Rejected, Insufficient) `[AI]`
 - [ ] Render transaction pending/success/fail states `[AI]`
@@ -62,6 +62,8 @@ End Time: 2026-07-07T14:55:00+08:00
 - [ ] Set up GitHub Actions CI/CD pipeline `[AI]`
 - [ ] Build path-routing visualization UI `[AI]`
 - [ ] Implement Gemini AI Smart Assist intent parser `[AI]`
+- [ ] Implement Activity Tab ledger with transaction tracking `[AI]`
+- [ ] Implement Settings Tab panel (slippage, network, AI toggles) `[AI]`
 - [ ] Code contract tests in Rust (3+ passing) `[AI]`
 - [ ] Code frontend unit tests (Vitest) `[AI]`
 - [ ] Verify 10+ meaningful commits are pushed to main `[AI]`

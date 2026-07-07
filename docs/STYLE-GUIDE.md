@@ -25,7 +25,10 @@ stellar-jtm/
 │   │   ├── ui/              # Primitive buttons, inputs, modals
 │   │   ├── WalletConnect.tsx
 │   │   ├── RouteCalculator.tsx
-│   │   └── EscrowLock.tsx
+│   │   ├── EscrowLock.tsx
+│   │   ├── BottomNav.tsx     # App navigation tabs
+│   │   ├── ProfileDrawer.tsx # Wallet details & balance panel
+│   │   └── SettingsPanel.tsx # Slippage, network, and AI settings
 │   ├── hooks/               # Custom React hooks (useFreighter, useStellarWallet)
 │   ├── lib/                 # Shared utilities, pathfinding algorithms, SDK instances
 │   └── styles/              # Global css and Tailwind configs
