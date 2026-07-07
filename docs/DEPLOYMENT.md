@@ -32,9 +32,9 @@ This generates a keypair, funds it with 10,000 XLM, and registers it in the loca
 
 ---
 
-## 🛠️ Smart Contract Compilation & Deployment
+## 🛠️ Smart Contract Compilation, Deployment & Initialization
 
-Compile the smart contracts and publish them to Testnet:
+Compile the smart contracts, deploy them to Testnet, and execute initialization parameters:
 
 ```bash
 # 1. Build WASM artifacts
@@ -54,14 +54,77 @@ stellar contract deploy \
   --network testnet \
   --alias aethyr-escrow
 
-# 4. Generate typescript bindings
+# 4. Initialize aethyr-router
+stellar contract invoke \
+  --id aethyr-router \
+  --source-account dev \
+  --network testnet \
+  -- \
+  initialize \
+  --admin dev
+
+# 5. Initialize aethyr-escrow
+stellar contract invoke \
+  --id aethyr-escrow \
+  --source-account dev \
+  --network testnet \
+  -- \
+  initialize \
+  --admin dev \
+  --router aethyr-router
+
+# 6. Generate typescript bindings for integration
 stellar contract bindings typescript \
   --network testnet \
-  --contract-id <ROUTER_CONTRACT_ID> \
+  --contract-id aethyr-router \
   --output-dir ./packages/aethyr-router-bindings
 ```
 
 ---
+
+## 🪙 Mock Assets & Liquidity Setup (Testnet Testing)
+
+Since cross-border pathfinding requires liquid trading routes between assets, you must configure mock token contracts representing USD, PHP, and NGN on Stellar Testnet:
+
+### 1. Deploy & Initialize Mock USDC
+```bash
+# Deploy token contract
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/soroban_token_contract.wasm \
+  --source-account dev \
+  --network testnet \
+  --alias mock-usdc
+
+# Initialize Mock USDC (7 decimals)
+stellar contract invoke \
+  --id mock-usdc \
+  --source-account dev \
+  --network testnet \
+  -- \
+  initialize \
+  --admin dev \
+  --decimal 7 \
+  --name "Mock USD Coin" \
+  --symbol "USDC"
+```
+
+### 2. Mint Mock Tokens to Test Account
+To run swaps, mint tokens to your Freighter or Testnet address:
+```bash
+stellar contract invoke \
+  --id mock-usdc \
+  --source-account dev \
+  --network testnet \
+  -- \
+  mint \
+  --to <YOUR_WALLET_ADDRESS> \
+  --amount 100000000000 # Mints 10,000.0000000 USDC
+```
+
+*(Repeat this process for Mock PHP and Mock NGN to establish the node assets in the routing pathfinder).*
+
+---
+
 
 ## 🔑 Environment Variables Setup
 

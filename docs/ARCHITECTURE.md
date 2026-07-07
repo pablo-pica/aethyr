@@ -50,14 +50,16 @@ Aethyr is a client-side dApp (PWA) that interacts directly with the Stellar Netw
 
 ---
 
-## 🔀 Path-Finding & Routing Engine
+## 🔀 Hybrid Path-Finding & Routing Engine
 
-Stellar features a built-in decentralized exchange (DEX) with orderbooks. Aethyr's key differentiator is finding the optimal path through these orderbooks to execute cross-border payments.
+Stellar features a built-in decentralized exchange (DEX) with orderbooks and native/Soroban automated market makers (AMMs) or liquidity pools. Aethyr's key differentiator is resolving the most cost-effective path by dynamically scanning both orderbooks and AMM pools.
 
-### 1. Algorithm Design (Client-Side)
-- **Path Resolution**: The frontend queries the Horizon API `/paths` endpoint or fetches orderbooks for liquid asset pairs (e.g., PHP/USDC, USDC/XLM, XLM/NGN).
-- **Graph Representation**: Assets are represented as nodes; orderbook bid/ask spreads act as weighted edges (fees + slippage).
-- **Execution**: The dApp runs a pathfinding algorithm (Dijkstra or DFS with depth limit 3) to locate the route yielding the highest amount of `token_out` for a given `token_in`.
+### 1. Hybrid Algorithm Design (Client-Side)
+- **Path Resolution**: The frontend client queries the Horizon API `/paths` endpoint (which searches Classic orderbooks and Classic AMM pools) and interacts directly with Soroban RPC nodes to fetch reserves from Soroban-based AMM contracts.
+- **Graph Representation**: Assets are represented as nodes. Edges are weighted dynamically based on transaction cost:
+  - *Orderbooks*: Weighted by current bid/ask spreads, order depth, and calculated slippage curves.
+  - *AMM Pools (Constant Product)*: Weighted by pool reserves ($X \times Y = K$) and pool swap fees (typically 0.3%).
+- **Execution**: The dApp runs a localized hybrid pathfinding algorithm (modified Bellman-Ford or Dijkstra with depth limit 3 hops) to locate the path yielding the highest amount of `token_out` for a given `token_in`, taking into account trade price impact.
 
 ### 2. Traditional vs. Stellar Cost Comparison
 Aethyr compares the computed path against traditional rails:
@@ -72,15 +74,15 @@ Aethyr compares the computed path against traditional rails:
 Aethyr uses two core Soroban smart contracts written in Rust:
 
 ### 1. `aethyr-router` (Payment Router)
-Handles multi-token routing operations, converting asset A to asset B via intermediate pools or orderbooks.
+Handles multi-token routing operations, converting asset A to asset B via intermediate pools or orderbooks. It validates the output against the client-side slippage tolerance and routes the payment.
 
 ```rust
 pub trait AethyrRouterTrait {
     /// Executes a routed payment from sender to recipient
-    /// - `source`: Sender account
-    /// - `destination`: Recipient account
-    /// - `path`: Vector of token contract addresses representing the route
-    /// - `amount_in`: Exact amount of token_in to send
+    /// - `source`: Sender account (requires signature verification via require_auth)
+    /// - `destination`: Recipient account or target escrow address
+    /// - `path`: Vector of token contract addresses representing the route (e.g., [PHP, USDC, XLM])
+    /// - `amount_in`: Exact amount of token_in to swap
     /// - `min_amount_out`: Slippage tolerance threshold
     fn route_payment(
         env: Env,
@@ -89,26 +91,42 @@ pub trait AethyrRouterTrait {
         path: Vec<Address>,
         amount_in: i128,
         min_amount_out: i128,
-    ) -> i128;
+    ) -> i128; // Returns actual amount transferred to destination
 }
 ```
 
 ### 2. `aethyr-escrow` (Milestone Escrow)
-Locks funds and releases them to the recipient only when milestone criteria are verified by a designated third-party oracle or both parties confirm.
+Locks funds and releases them to the recipient in installments as milestone criteria are completed. The releases are authorized by a designated third-party validator (oracle or notary) or by mutual agreement of the parties.
 
 ```rust
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Milestone {
+    pub description: Symbol,   // Short description of the work
+    pub payout_weight: u32,   // Payout percentage represented in basis points (e.g., 5000 = 50.00%)
+    pub is_completed: bool,   // Completion status
+}
+
 pub trait AethyrEscrowTrait {
     /// Creates an escrow lock for a routed payment
+    /// - `sender`: The account locking the funds (requires require_auth)
+    /// - `receiver`: The account receiving payouts upon milestone completion
+    /// - `token`: Soroban token address of locked funds
+    /// - `amount`: Total amount locked
+    /// - `milestones`: Vector of milestones with descriptions and payout weights
     fn create_escrow(
         env: Env,
         sender: Address,
         receiver: Address,
         token: Address,
         amount: i128,
-        milestones_count: u32,
+        milestones: Vec<Milestone>,
     ) -> BytesN<32>; // Returns Escrow ID
 
     /// Releases funds for a specific milestone
+    /// - `escrow_id`: Unique identifier of the escrow
+    /// - `milestone_index`: The index of the milestone being completed
+    /// - `auth_party`: The designated validator/oracle address authorizing release (requires require_auth)
     fn release_milestone(
         env: Env,
         escrow_id: BytesN<32>,
@@ -117,9 +135,29 @@ pub trait AethyrEscrowTrait {
     );
 
     /// Refunds remaining locked funds upon cancellation or failure
-    fn refund_escrow(env: Env, escrow_id: BytesN<32>);
+    /// - `escrow_id`: Unique identifier of the escrow
+    /// - `sender`: The sender reclaiming funds (requires require_auth; only allowed after lock expiration)
+    fn refund_escrow(
+        env: Env, 
+        escrow_id: BytesN<32>, 
+        sender: Address
+    );
 }
 ```
+
+### 3. Soroban Security & Authorization Flow
+Security is enforced using Soroban's native auth framework:
+- **Sender Verification**: Both `route_payment` and `create_escrow` invoke `sender.require_auth()` to ensure the caller owns the funds being routed or locked.
+- **Oracle / Validator Verification**: The `release_milestone` function invokes `auth_party.require_auth()` to prevent unauthorized release of funds.
+- **Token Transfer Authorization**: The contracts utilize `token_client.transfer_from` requiring the user to have approved the contract address to transfer up to `amount_in` tokens.
+
+---
+
+## 🏦 Stellar Ecosystem Integration (SEPs)
+
+For real-world cash-in and cash-out operations, Aethyr integrates with the Stellar Anchor network via standard protocols:
+1. **SEP-24 (Hosted Deposit and Withdrawal)**: Embeds anchor-hosted web views for KYC verification and interactive bank/cash deposit or withdrawal.
+2. **SEP-38 (Anchor Quotes)**: Requests firm currency conversion quotes between on-chain assets (e.g. USDC) and off-chain local currencies (e.g. PHP via GCash, NGN via bank transfer) to display exact fiat-equivalent values in the dApp interface.
 
 ---
 

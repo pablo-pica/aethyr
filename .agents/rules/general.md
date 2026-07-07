@@ -42,3 +42,14 @@ If you encounter a `429` error, `ResourceExhausted`, or any rate limit warning f
 2. **Warn User**: Output a message in the chat detailing that the active Google Student Pro account has hit a rate limit.
 3. **Instruction**: Advise the user to toggle the active credentials or API key in the Antigravity CLI setup to their second account.
 4. **Pause Execution**: Stand by until the user confirms the account switch is complete.
+
+---
+
+## 🔍 Context7 Documentation Lookup Rules
+To prevent outdated or hallucinated API patterns:
+1. **JavaScript/TypeScript SDK**: Query `/stellar/js-stellar-sdk` using the `context7` MCP server before writing wallet connections or transaction builders.
+2. **Stellar Wallets Kit**: Query `/creit-tech/stellar-wallets-kit` to verify exact modal options, browser extension detections, and events.
+3. **Soroban Smart Contracts**: Query `/stellar/rs-soroban-sdk` to look up correct macro interfaces (e.g. `#[contract]`, `#[contractimpl]`), environment storage structures, and test helpers.
+4. **General Developer Docs**: Query `/websites/developers_stellar` for network parameters, Horizon HTTP endpoint schemas, and DEX orderbook structures.
+5. **Lookup Requirement**: Always resolve the library ID first, then execute a targeted documentation search query. Do not write raw code from memory if you are unsure of the signatures.
+

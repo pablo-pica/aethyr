@@ -56,7 +56,20 @@
 
 ### Elevator Pitch
 
-> Aethyr is an intelligent cross-border payment routing platform built on Stellar. It analyzes DEX orderbooks in real-time to find the cheapest multi-hop path for your money — with an optional AI assist that lets you describe payments in plain language.
+> Aethyr is an intelligent cross-border payment routing platform built on Stellar. It analyzes DEX orderbooks and AMM liquidity pools in real-time to find the cheapest multi-hop path for your money, routing funds through secure, milestone-based Soroban escrows with an optional Gemini AI assist that parses plain-language payment commands.
+
+### 🌟 JTM Stand-out Strategy & Competitiveness
+To differentiate Aethyr from other entries and traditional fintech apps, we focus on three core pillars:
+1. **Hybrid Cost Efficiency**: Unlike standard wallets that perform direct swaps or single-hop swaps, Aethyr combines Stellar Classic AMMs, DEX orderbooks, and Soroban AMMs to find multi-hop routes (e.g. PHP ➔ USDC ➔ XLM ➔ NGN) that minimize slippage for large transfers.
+2. **Milestone-Based Security**: Many remittance platforms suffer from payment disputes. Aethyr implements a Soroban-based milestone escrow contract, allowing funds to be safely locked on-chain and disbursed incrementally as work is verified by trusted validators/oracles.
+3. **AI-Driven UX**: Rather than requiring users to manually configure complex token conversions and contract calls, users can speak/type their intentions natively (e.g. *"Pay Bob 500 pesos for completing step 2"*), and Aethyr's Gemini layer structures the transaction automatically.
+
+### 🏦 Target Corridors & Liquidity Sourcing
+Aethyr targets corridors with high remittance friction:
+* **US/Europe to Southeast Asia**: USD ➔ PHP (targeting GCash and bank anchors).
+* **US to Africa**: USD ➔ NGN (targeting local bank transfer anchors like Cowrie).
+* **Inter-LatAm Corridor**: USD ➔ BRL / ARS (targeting Anclap and local banking APIs).
+* **Integration**: In production, these corridors utilize Stellar Anchors via **SEP-24** for fiat deposits/withdrawals and **SEP-38** for anchor exchange rate quoting.
 
 ### Feature Progression
 
