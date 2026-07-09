@@ -31,12 +31,10 @@ describe("MilestoneBuilder Component Tests", () => {
     expect(fileContent).toContain("flex-1 min-w-0 h-10 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl px-3 text-xs");
 
     // Weight input width and styling
-    expect(fileContent).toContain("relative w-[72px] shrink-0");
-    expect(fileContent).toContain("w-full h-10 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl pl-2 pr-5 text-xs text-slate-200 font-mono text-right");
-
-    // Overlay percentage label inside weight input container
-    expect(fileContent).toContain("absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-mono select-none pointer-events-none");
-    expect(fileContent).toContain(">%<");
+    expect(fileContent).toContain("w-[110px] shrink-0");
+    expect(fileContent).toContain("<CustomNumberInput");
+    expect(fileContent).toContain("suffix=\"%\"");
+    expect(fileContent).toContain("compact={true}");
 
     // Remove button small trash icon
     expect(fileContent).toContain("p-2 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400");
@@ -60,8 +58,6 @@ describe("MilestoneBuilder Component Tests", () => {
     expect(fileContent).toContain("peer-checked:translate-x-3");
 
     // Disable manual weight input when Auto-Balance is enabled
-    expect(fileContent).toContain("readOnly={autoBalance}");
-    expect(fileContent).toContain("autoBalance ? \"opacity-50 cursor-not-allowed\" : \"\"");
     expect(fileContent).toContain("disabled={autoBalance}");
   });
 

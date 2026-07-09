@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Plus, Trash2, Scale, AlertTriangle, CheckCircle } from "lucide-react";
+import CustomNumberInput from "./ui/CustomNumberInput";
 
 export interface Milestone {
   description: string;
@@ -170,19 +171,17 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
               />
 
               {/* Weight input container */}
-              <div className="relative w-[72px] shrink-0">
-                <input
-                  type="number"
-                  step="0.01"
-                  value={Number((m.payout_weight / 100).toFixed(2))}
-                  onChange={(e) => handleUpdateWeight(idx, e.target.value)}
-                  placeholder="0.00"
-                  readOnly={autoBalance}
-                  className={`w-full h-10 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl pl-2 pr-5 text-xs text-slate-200 font-mono text-right outline-none transition-all focus-ring ${
-                    autoBalance ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+              <div className="w-[110px] shrink-0">
+                <CustomNumberInput
+                  value={Number((m.payout_weight / 100).toFixed(2)).toString()}
+                  onChange={(val) => handleUpdateWeight(idx, val)}
+                  min={0}
+                  max={100}
+                  step={1}
+                  suffix="%"
+                  disabled={autoBalance}
+                  compact={true}
                 />
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-mono select-none pointer-events-none">%</span>
               </div>
 
               {/* Remove button */}

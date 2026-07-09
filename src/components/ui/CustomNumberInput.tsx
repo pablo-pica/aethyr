@@ -12,6 +12,7 @@ interface CustomNumberInputProps {
   step?: number;
   suffix?: string;
   disabled?: boolean;
+  compact?: boolean;
 }
 
 export default function CustomNumberInput({
@@ -23,6 +24,7 @@ export default function CustomNumberInput({
   step = 1,
   suffix,
   disabled = false,
+  compact = false,
 }: CustomNumberInputProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -63,12 +65,14 @@ export default function CustomNumberInput({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className={`flex items-center ${compact ? "gap-1.5" : "gap-2"}`}>
       <button
         type="button"
         disabled={disabled}
         onClick={decrement}
-        className="w-10 h-10 rounded-xl border border-teal-500/20 hover:border-teal-500/40 hover:bg-teal-500/10 flex items-center justify-center text-teal-400 focus-ring active:scale-95 transition-all disabled:opacity-50 shrink-0"
+        className={`${
+          compact ? "w-8 h-8 rounded-lg" : "w-10 h-10 rounded-xl"
+        } border border-teal-500/20 hover:border-teal-500/40 hover:bg-teal-500/10 flex items-center justify-center text-teal-400 focus-ring active:scale-95 transition-all disabled:opacity-50 shrink-0`}
         data-testid="num-input-decrement"
       >
         <Minus className="w-4 h-4" />
@@ -81,11 +85,13 @@ export default function CustomNumberInput({
           onBlur={handleBlur}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full h-10 px-4 rounded-xl bg-space-950/60 border border-teal-500/10 focus:border-teal-500/25 text-sm font-mono text-slate-100 placeholder-slate-500 outline-none transition-all text-center focus-ring [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className={`w-full ${
+            compact ? "h-8 rounded-lg text-xs px-2.5" : "w-full h-10 px-4 rounded-xl"
+          } bg-space-950/60 border border-teal-500/10 focus:border-teal-500/25 font-mono text-slate-100 placeholder-slate-500 outline-none transition-all text-center focus-ring [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
           data-testid="num-input-field"
         />
         {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none">
+          <span className={`absolute ${compact ? "right-2" : "right-3"} top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none`}>
             {suffix}
           </span>
         )}
@@ -94,7 +100,9 @@ export default function CustomNumberInput({
         type="button"
         disabled={disabled}
         onClick={increment}
-        className="w-10 h-10 rounded-xl border border-teal-500/20 hover:border-teal-500/40 hover:bg-teal-500/10 flex items-center justify-center text-teal-400 focus-ring active:scale-95 transition-all disabled:opacity-50 shrink-0"
+        className={`${
+          compact ? "w-8 h-8 rounded-lg" : "w-10 h-10 rounded-xl"
+        } border border-teal-500/20 hover:border-teal-500/40 hover:bg-teal-500/10 flex items-center justify-center text-teal-400 focus-ring active:scale-95 transition-all disabled:opacity-50 shrink-0`}
         data-testid="num-input-increment"
       >
         <Plus className="w-4 h-4" />
