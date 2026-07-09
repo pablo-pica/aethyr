@@ -7,7 +7,7 @@ This is a living document updated autonomously by agents at the end of each task
 ## ⚡ Active Task
 
 ```yaml
-Current Task: "Escrow Locks Tab UI/UX Revamp"
+Current Task: "Custom Milestone Weights Input Implementation"
 Assigned Agent: Builder
 Status: "Completed"
 ```
@@ -93,6 +93,11 @@ Status: "Completed"
 ## 📜 Audit Logs
 
 ### 2026-07-10
+- **Builder**: Implemented custom plus/minus buttons for milestone weights using CustomNumberInput in MilestoneBuilder:
+  1. Updated CustomNumberInput.tsx to support the `compact` property which dynamically updates sizing (w-8 h-8, rounded-lg, text-xs, h-8, gap-1.5, right-2).
+  2. Integrated CustomNumberInput in MilestoneBuilder.tsx with the weight inputs.
+  3. Updated tests in MilestoneBuilder.test.tsx and CustomNumberInput.test.tsx to assert correctly.
+  4. Verified all 52 unit tests pass successfully.
 - **Builder**: Completed the Escrow Locks Tab UI/UX Revamp:
   1. Unified Escrow Role Selector: Relocated role selector from individual cards to a header-based, page-level SegmentedControl inside the Active Escrows section, including an informative card block describing duties of the active role.
   2. Standardized inputs: Standardized form input layouts, height (h-12), and text sizes (text-sm) in both EscrowTab address fields and MilestoneBuilder milestone fields to match the Send tab styling.
