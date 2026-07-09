@@ -44,7 +44,7 @@ graph TD
   - Triggered at the end of each belt's coding phase.
   - Performs static checks (checking files exist, content structures, commits count).
   - Runs active tests (`cargo test` + `npm test`) and captures output.
-  - Automatically runs the Playwright script (`.agents/scripts/verify_ui.py`) to capture responsive screenshots.
+  - Uses Playwright MCP tools to navigate the local dev server and verify that the UI compiles and remains interactive.
   - Updates the checklist in `docs/PROGRESS.md`.
   - Raises blocking warnings if any mandatory checklist item fails.
 
@@ -118,9 +118,12 @@ RULES:
 4. Run the test suite:
    - For Rust: cargo test
    - For Frontend: npm run test (or vitest run)
-5. Execute Playwright UI screenshot capture using Playwright MCP:
-   - Ensure the local dev server is running (`npm run dev`).
-   - Call the Playwright MCP server (`browser_run_code_unsafe` tool) with code that navigates to http://localhost:3000, resizes the viewport to 390x844, injects mock Stellar wallet APIs, and captures screenshots to `docs/assets/screen1.png` etc.
+5. Verify the UI is functional using Playwright MCP tools:
+   - Ensure the local dev server is running on `http://localhost:3000`.
+   - Use `browser_navigate` to load the landing page.
+   - Use `browser_resize` to verify the mobile viewport (390x844).
+   - Use `browser_snapshot` to inspect the DOM and verify that the landing header, active tabs (Send, Activity, Settings), and the wallet connect buttons are present and visible.
+   - If needed, run inline JS using `browser_run_code_unsafe` to verify drawer/dialog toggle functionality.
 6. Check if Vercel deployment config is correct.
 7. Edit docs/PROGRESS.md and mark met items with [x] and unmet items with [ ].
 8. If any check fails, append a detailed "⚠️ WARNING" section to the bottom of docs/PROGRESS.md explaining what is missing.
