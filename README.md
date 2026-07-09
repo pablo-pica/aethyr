@@ -13,7 +13,8 @@
   <img src="https://img.shields.io/badge/Stellar-Testnet-blue?style=flat-square&logo=stellar" alt="Network">
   <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs" alt="Next.js">
   <img src="https://img.shields.io/badge/Tailwind-v4-38bdf8?style=flat-square&logo=tailwindcss" alt="Styling">
-  <img src="https://img.shields.io/badge/Vitest-20%2F20%20Passed-green?style=flat-square&logo=vitest" alt="Vitest Tests">
+  <img src="https://img.shields.io/badge/Rust%20Tests-11%2F11%20Passed-green?style=flat-square&logo=rust" alt="Rust Tests">
+  <img src="https://img.shields.io/badge/Vitest-24%2F24%20Passed-green?style=flat-square&logo=vitest" alt="Vitest Tests">
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
 </p>
 
@@ -26,18 +27,37 @@ Aethyr is an intent-based, cross-border payment router built on the Stellar netw
 Traditional international remittance networks impose significant overhead through high flat fees, wide conversion spreads, and settlement delays. Aethyr addresses these issues through three main pillars:
 * **AI-Driven Intent Parsing**: Users specify transactions in plain language (e.g., *"Send 50 USD equivalent in PHP to Bob for completing Milestone 1"*). Aethyr translates these inputs into structured transaction payloads.
 * **DEX Pathfinding**: Aethyr calculates the most cost-effective path across Classic DEX orderbooks, automated market makers (AMMs), and Soroban liquidity pools (e.g., `PHP ➔ USDC ➔ XLM ➔ NGN`), maximizing the recipient's payout.
-* **Non-Custodial Escrows**: Funds are secured inside modular Soroban milestone escrow contracts, releasing capital incrementally as milestones are completed and verified by trust anchors.
+* **Non-Custodial Milestone Escrows**: Funds are secured inside modular Soroban milestone escrow contracts, releasing capital incrementally as milestones are completed and verified by trust anchors, with built-in dispute resolution and time-locked auto-release.
 
 ---
 
 ## 🏆 Core Achievements
 
-During the initial engineering phase, we successfully established a production-grade infrastructure:
+### Smart Contract System (Soroban / Rust)
+* 🔐 **Aethyr Router Contract** — Multi-hop DEX routing with atomic swaps and direct escrow funding.
+  * **Address**: [`CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO`](https://stellar.expert/explorer/testnet/contract/CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO)
+  * **Deployment Tx**: [`ed188ca...`](https://stellar.expert/explorer/testnet/tx/ed188ca785a3c129d2c450c387a094f44657ec63cad4be87e4a035a9646f4103)
+* 🔐 **Aethyr Escrow Contract** — Freelancer milestone escrows with:
+  * **Milestone submission** by freelancers with on-chain timestamp tracking.
+  * **Client dispute** flags that block auto-release.
+  * **7-day auto-release** timer for uncontested submitted milestones.
+  * **30-day refund lock** to protect against dispute-bypassing refund attacks.
+  * **Dust-truncation protection**: Final milestone payouts use the remaining locked balance instead of basis-point division to prevent token dust loss.
+  * **11 passing Rust tests** covering happy paths, edge cases, and panic guards.
 
-* 🦊 **Freighter Wallet Hooks**: Developed a modular custom hook [useFreighter.ts](./src/hooks/useFreighter.ts) that manages connection states, checks network compatibility, and interfaces with the Freighter browser extension API.
-* 🪙 **Native Testnet Transfers**: Fully integrated native XLM transfers with real-time balance queries via Stellar Horizon APIs, complete with transaction builders and user signing flows.
-* 📱 **PWA-Ready Layout**: Created an installable Progressive Web App layout. Key styling features include safe notched margins (`env(safe-area-inset-*)` calculated dynamically in CSS) and a glassmorphic sidebar profile drawer designed specifically for mobile viewports.
-* 🧪 **Robust Test Suite (20/20)**: Delivered comprehensive integration and unit tests covering wallet components, profile drawer layouts, and utilities. Active pre-commit security hooks prevent key leaks and run test suites before every commit.
+### Gasless Fee Sponsorship Relayer
+* ⛽ **`/api/sponsor` Endpoint** — Server-side fee-bump transaction relayer that pays Soroban gas fees on behalf of users:
+  * **Contract destination whitelisting**: Only `invokeHostFunction` calls targeting approved Aethyr contracts are sponsored (prevents fee-siphoning attacks).
+  * **IP-based rate limiting**: 30 requests/minute per IP with `Retry-After` headers.
+  * **Automatic client fallback**: If the relayer is unconfigured or fails, the frontend transparently falls back to user-paid fees.
+
+### Frontend (Next.js 16 / TypeScript / Tailwind v4)
+* 🦊 **Multi-Wallet Support**: StellarWalletsKit integration supporting Freighter, Albedo, and xBull via a unified modal selector.
+* 🤖 **AI Intent Parser**: Gemini-powered natural language bar that converts human commands (e.g., *"Pay 100 XLM to GA... for Milestone 1"*) into structured transaction payloads.
+* 📱 **PWA-Ready Layout**: Full-bleed mobile UI with safe-area notch handling, glassmorphic drawers, and a desktop phone-shell mockup.
+* 🏗️ **Visual Milestone Builder**: Drag-and-edit milestone card editor for composing AI-drafted escrow milestones before on-chain submission.
+* 🧪 **24 passing Vitest tests** covering AI parsing, page integration, component rendering, and API route logic.
+* 🔒 **Pre-commit security hooks** scanning for Stellar private key leaks and running full test suites before every commit.
 
 ---
 
@@ -60,13 +80,16 @@ graph TD
     AI -->|Structured Params| UI
     Pathfinder -->|Best Route resolved| UI
     UI -->|Signs Tx| Wallet[StellarWalletsKit / Freighter]
-    Wallet -->|Submits Signed XDR| RPC[Soroban Testnet RPC]
+    Wallet -->|Submits Signed XDR| Relayer[/api/sponsor Gasless Relayer]
+    Relayer -->|Fee-Bump + Submit| RPC[Soroban Testnet RPC]
+    Relayer -.->|Fallback: Direct Submit| RPC
     RPC -->|Executes| RouterContract[Aethyr Router Contract]
+    RouterContract -->|Inter-Contract Call| EscrowContract[Aethyr Escrow Contract]
     RouterContract -->|Executes Swaps| DEX[Stellar DEX Pools]
-    RouterContract -->|Transfers| Receiver([Recipient])
+    EscrowContract -->|Milestone Payout| Receiver([Recipient])
 ```
 
-The client queries Horizon endpoints to identify active market makers while the Soroban smart contracts execute atomic, multi-hop swaps directly on-chain.
+The client queries Horizon endpoints to identify active market makers while the Soroban smart contracts execute atomic, multi-hop swaps directly on-chain. The gasless relayer sponsors transaction fees so end-users pay zero gas costs.
 
 ---
 
@@ -77,25 +100,45 @@ Below is a map of the repository's directory layout to assist in codebase evalua
 ```text
 aethyr/
 ├── .agents/                 # Developer agents instruction and status trackers
+├── .github/workflows/       # CI/CD pipeline configuration
+│   └── ci.yml               # GitHub Actions: lint, test (Rust + Vitest), build
+├── contracts/               # Soroban smart contracts (Rust)
+│   └── aethyr-router/
+│       ├── contracts/
+│       │   ├── aethyr-escrow/   # Milestone escrow: create, release, dispute, auto-release, refund
+│       │   │   ├── src/lib.rs   # Core escrow contract logic
+│       │   │   └── src/test.rs  # 7 comprehensive Rust tests
+│       │   └── aethyr-router/   # DEX routing: swap, fallback, route-to-escrow
+│       │       ├── src/lib.rs   # Core router contract logic
+│       │       └── src/test.rs  # 4 comprehensive Rust tests
+│       └── Cargo.toml           # Workspace manifest
 ├── docs/                    # Design documentation, architecture files, and submission assets
 │   ├── assets/              # Interface screenshots and project banners
 │   ├── ARCHITECTURE.md      # Core system architecture and contract specs
+│   ├── BELT-REQUIREMENTS.md # JTM belt submission checklists
 │   ├── PROGRESS.md          # Real-time living development progress tracker
 │   └── MASTERPLAN.md        # JTM milestones timeline and strategy plan
 ├── scripts/
-│   └── pre-commit.sh        # Git compliance hook (scanning for private key leaks & running tests)
+│   └── pre-commit.sh        # Git compliance hook (secret scanning + test runner)
 ├── src/
 │   ├── app/                 # Next.js App Router pages and layouts
+│   │   ├── api/sponsor/     # Gasless relayer API route
+│   │   │   ├── route.ts     # Fee-bump builder with contract whitelisting + rate limiting
+│   │   │   └── route.test.ts# Relayer unit tests
 │   │   ├── page.tsx         # Main entry point (interactive mobile mockup container)
 │   │   ├── page.test.tsx    # Page component integration tests
 │   │   └── layout.tsx       # Global wrappers and metadata setup
 │   ├── components/          # Reusable React components
 │   │   ├── BottomNav.tsx    # Mobile-friendly PWA bottom tab navigation
+│   │   ├── MilestoneBuilder.tsx # Visual milestone card editor
 │   │   ├── ProfileDrawer.tsx# Wallet balance overview and account control drawer
-│   │   ├── WalletConnect.tsx# Interactive wallet status controller
+│   │   └── WalletConnect.tsx# Interactive wallet status controller
 │   ├── hooks/
-│   │   └── useFreighter.ts  # Custom hook wrapping the @stellar/freighter-api
+│   │   ├── useFreighter.ts  # Legacy Freighter-only hook
+│   │   └── useStellarWallet.ts # Full-featured hook: StellarWalletsKit, contract calls, gasless submit
 │   ├── lib/
+│   │   ├── aiParser.ts      # Gemini AI intent parser (natural language → tx params)
+│   │   ├── aiParser.test.ts # Parser unit tests (6 cases)
 │   │   ├── utils.ts         # Tailwind CSS styling and address helper functions
 │   │   └── utils.test.ts    # Utility unit tests
 │   └── styles/
@@ -105,15 +148,28 @@ aethyr/
 └── vitest.config.ts         # Vitest setup configuration file
 ```
 
-Here are the key implementation files:
-* [page.tsx](./src/app/page.tsx): The primary container UI managing viewports, notched margin wrappers, tabs, and form submissions.
-* [lib.rs (Escrow)](./contracts/aethyr-router/contracts/aethyr-escrow/src/lib.rs): Core milestone escrow logic containing freelancer submissions, client disputes, oracle/manual milestone releases, and time-locked auto-releases.
-* [lib.rs (Router)](./contracts/aethyr-router/contracts/aethyr-router/src/lib.rs): Payment routing contract that coordinates DEX swaps and seamlessly routes payments directly into custom milestone escrows.
-* [useFreighter.ts](./src/hooks/useFreighter.ts): Core wallet connection logic encapsulating network detection and sign/transfer commands.
-* [ProfileDrawer.tsx](./src/components/ProfileDrawer.tsx): Side drawer container tracking wallet addresses and balance states.
-* [BottomNav.tsx](./src/components/BottomNav.tsx): PWA layout switcher component handling navigation tabs.
-* [pre-commit.sh](./scripts/pre-commit.sh): Custom git commit guard running automated test sweeps and Stellar seed regex leak filters.
-* [vitest.config.ts](./vitest.config.ts): Configure JS DOM environment parameters for React rendering tests.
+### Key Implementation Files
+* [page.tsx](./src/app/page.tsx): Primary container UI with tabs, forms, activity ledger, and milestone actions.
+* [lib.rs (Escrow)](./contracts/aethyr-router/contracts/aethyr-escrow/src/lib.rs): Milestone escrow logic — create, release, submit, dispute, auto-release, refund.
+* [lib.rs (Router)](./contracts/aethyr-router/contracts/aethyr-router/src/lib.rs): Payment routing contract — DEX swaps and escrow funding.
+* [useStellarWallet.ts](./src/hooks/useStellarWallet.ts): Full-featured wallet hook — multi-wallet, contract calls, gasless relayer integration with exponential backoff.
+* [route.ts (Sponsor)](./src/app/api/sponsor/route.ts): Gasless relayer with contract whitelisting and rate limiting.
+* [aiParser.ts](./src/lib/aiParser.ts): Gemini AI intent parser converting natural language to structured payloads.
+* [MilestoneBuilder.tsx](./src/components/MilestoneBuilder.tsx): Visual milestone card editor.
+* [pre-commit.sh](./scripts/pre-commit.sh): Git compliance hook — secret scanning and full test runner.
+
+---
+
+## 🔒 Security Model
+
+| Threat | Mitigation |
+|:-------|:-----------|
+| **Fee-siphoning** via arbitrary contract calls | Relayer parses XDR operations and only sponsors `invokeHostFunction` calls targeting approved Aethyr contracts |
+| **Rate-drain attacks** on sponsor wallet | IP-based rate limiter (30 req/min) with `429 Retry-After` responses |
+| **Dispute-bypass refund** | Refund lock extended to 30 days (`LOCK_PERIOD_SECONDS`) so disputes cannot be front-run |
+| **Dust token loss** on final milestone | Final milestone pays out full remaining balance instead of basis-point calculation |
+| **Private key leaks** | Pre-commit hook scans diffs for Stellar seed patterns; `SPONSOR_SECRET_KEY` is never committed |
+| **Unconfigured relayer in production** | Fail-fast `503` if `SPONSOR_SECRET_KEY` is absent; random fallback key only in `test` env |
 
 ---
 
@@ -137,8 +193,8 @@ Aethyr is designed to feel like a native mobile application. The interface scale
 |:---:|:---:|:---:|
 | <img src="./docs/assets/screen1.png" width="200" alt="Mobile Viewport"> | *[Pending: GitHub Actions CI Dashboard Screenshot]* | *[Pending: Terminal Test Suite Run Screenshot]* |
 
-* **Verified Escrow Contract Address**: `[Pending Testnet Deployment]`
-* **Advanced Contract Call Tx Hash**: `[Pending Testnet Execution]`
+* **Verified Escrow Contract Address**: `CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO`
+* **Advanced Contract Call Tx Hash**: `cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623`
 * **dApp Walkthrough Demo Video**: `[Pending Walkthrough Video Link]`
 
 ---
@@ -151,7 +207,8 @@ Follow these instructions to run Aethyr locally on your development machine.
 Ensure you have the following installed:
 * **Node.js**: v20 or later
 * **npm**: v10 or later
-* **Stellar CLI** (Optional, for smart contract compiles/invokes): `cargo install --locked stellar-cli`
+* **Rust / Cargo**: For compiling Soroban contracts
+* **Stellar CLI** (Optional, for contract invokes): `cargo install --locked stellar-cli`
 
 ### 2. Project Installation
 ```bash
@@ -175,6 +232,7 @@ Open [env.local](./.env.local) and customize its parameters:
 * `NEXT_PUBLIC_ROUTER_CONTRACT_ID`: The deployed Soroban router contract address (`CB...`).
 * `NEXT_PUBLIC_ESCROW_CONTRACT_ID`: The deployed Soroban escrow contract address (`CC...`).
 * `NEXT_PUBLIC_GEMINI_API_KEY`: The API key utilized to authenticate with the Gemini API for plain text intent parsing.
+* `SPONSOR_SECRET_KEY`: *(Optional)* Secret key of the fee-sponsoring account. If unset, the gasless relayer is disabled and users pay their own fees.
 
 ### 4. Running the Development Server
 ```bash
@@ -185,8 +243,11 @@ Open [http://localhost:3000](http://localhost:3000) inside your web browser to t
 ### 5. Running Verification Suites
 Verify code health by running the verification commands:
 ```bash
-# Run unit and integration tests (Vitest)
+# Run frontend unit and integration tests (Vitest)
 npm test
+
+# Run smart contract tests (Rust)
+cd contracts/aethyr-router && cargo test
 
 # Run code style and structure lints (Next.js ESLint)
 npm run lint
@@ -203,43 +264,48 @@ gantt
     title Aethyr Development Roadmap
     dateFormat  YYYY-MM-DD
     section Completed
-    White Belt :2026-07-01, 2026-07-07
-    Yellow Belt (Soroban Contracts) :active, 2026-07-08, 2026-07-15
+    White Belt :done, 2026-07-01, 2026-07-07
+    Yellow Belt (Soroban Contracts) :done, 2026-07-08, 2026-07-09
+    Orange Belt (Escrow + Security) :active, 2026-07-09, 2026-07-15
     section Planned
-    Orange Belt (Escrow & Multi-wallet) :2026-07-16, 2026-07-30
-    Green Belt (SEP Standards) :2026-08-01, 2026-08-15
-    Blue Belt (DEX Auto Routing) :2026-08-16, 2026-08-31
+    Green Belt (SEP Standards) :2026-07-16, 2026-07-30
+    Blue Belt (DEX Auto Routing) :2026-08-01, 2026-08-15
 ```
 
-### ⚪ White Belt: Foundational PWA Container (Completed)
-* **Freighter wallet** connection hook integration ([useFreighter.ts](./src/hooks/useFreighter.ts)).
+### ⚪ White Belt: Foundational PWA Container (Completed ✅)
+* Freighter wallet connection hook integration.
 * Native Testnet XLM balance queries and transfer transaction builders.
 * Glassmorphic Profile Drawer side container with full responsive mockup.
-* Completed 20/20 Vitest test suite with active pre-commit security scans.
+* 20/20 Vitest test suite with active pre-commit security scans.
 
-### 🟡 Yellow Belt: Soroban Contracts (Completed)
-* Developed, compiled, and deployed the core `aethyr-router` contract in Rust to Stellar Testnet:
-  * **Contract Address**: `CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO`
-  * **Deployment Tx Hash**: [`ed188ca785a3c129d2c450c387a094f44657ec63cad4be87e4a035a9646f4103`](https://stellar.expert/explorer/testnet/tx/ed188ca785a3c129d2c450c387a094f44657ec63cad4be87e4a035a9646f4103)
-  * **Frontend Contract Invocation Tx Hash**: `cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623`
-* Integrated the **StellarWalletsKit** selector modal to support Albedo, xBull, and Freighter connections.
+### 🟡 Yellow Belt: Soroban Contracts (Completed ✅)
+* Deployed `aethyr-router` contract to Stellar Testnet:
+  * **Contract Address**: [`CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO`](https://stellar.expert/explorer/testnet/contract/CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO)
+  * **Deployment Tx Hash**: [`ed188ca...`](https://stellar.expert/explorer/testnet/tx/ed188ca785a3c129d2c450c387a094f44657ec63cad4be87e4a035a9646f4103)
+  * **Frontend Invocation Tx Hash**: `cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623`
+* Integrated StellarWalletsKit selector modal (Albedo, xBull, Freighter).
 * Mapped contract call states (pending, success, failure) with comprehensive UI toasts.
-* Supported error handling for 3 key transaction failures (User Rejected, Wallet Missing, Insufficient Balance).
+* Error handling for 3 key transaction failures.
 
-### 🟠 Orange Belt: Escrow & Multi-wallet Integration
-* Create the `aethyr-escrow` contract with inter-contract calling logic (Router ↔ Escrow).
-* Stream and parse contract events on the frontend to notify users of status changes.
-* Set up GitHub Actions CI/CD pipelines to run test suites and code formatting guards.
-* Wire up the Gemini API Smart Assist intent parser bar.
+### 🟠 Orange Belt: Escrow & Multi-wallet Integration (In Progress 🔧)
+* **Aethyr Escrow contract** with inter-contract calling (Router → Escrow).
+* Freelancer milestone submission, client disputes, and 7-day auto-release timer.
+* Gasless fee-bump relayer (`/api/sponsor`) with contract whitelisting and rate limiting.
+* 30-day refund lock period and dust-truncation protection.
+* AI-powered intent parsing bar (Gemini API).
+* Visual Milestone Builder card editor.
+* GitHub Actions CI/CD pipeline.
+* **65 conventional commits** across dev-branch.
+* **11 Rust tests + 24 Vitest tests** all passing.
 
 ### 🟢 Green Belt: SEP Standards
-* Integrate **SEP-24** interactive deposit/withdrawal anchors within the Profile Drawer to allow fiat cash-ins.
-* Support **SEP-38** exchange rate quotes to compare DEX path prices with off-chain anchor conversion rates.
+* Integrate **SEP-24** interactive deposit/withdrawal anchors for fiat cash-ins.
+* Support **SEP-38** exchange rate quotes to compare DEX prices with anchor rates.
 * Launch developer staging environments and onboard 10 testnet users.
 
 ### 🔵 Blue Belt: DEX Auto Routing Engine
 * Implement localized Dijkstra/Bellman-Ford path calculations querying both Classic DEX and Soroban AMMs.
-* Resolve multi-hop tokens paths (up to 3 hops) to maximize payment receiver outputs.
+* Resolve multi-hop token paths (up to 3 hops) to maximize receiver outputs.
 * Build simulation wrappers to protect users from high slippage.
 
 ---
