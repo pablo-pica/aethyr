@@ -7,7 +7,7 @@ This is a living document updated autonomously by agents at the end of each task
 ## ⚡ Active Task
 
 ```yaml
-Current Task: "Merge main to dev-branch"
+Current Task: "Add .playwright-mcp to .gitignore"
 Assigned Agent: Builder
 Status: Completed
 ```
