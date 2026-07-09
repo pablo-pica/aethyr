@@ -11,7 +11,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing xdr parameter" }, { status: 400 });
     }
 
-    const sponsorSecretKey = process.env.SPONSOR_SECRET_KEY || Keypair.random().secret();
+    const sponsorSecretKey = process.env.SPONSOR_SECRET_KEY || (process.env.NODE_ENV === "test" ? Keypair.random().secret() : null);
+    if (!sponsorSecretKey) {
+      return NextResponse.json({
+        success: false,
+        error: "Sponsorship is disabled: SPONSOR_SECRET_KEY is not configured.",
+      }, { status: 503 });
+    }
     const sponsorKeypair = Keypair.fromSecret(sponsorSecretKey);
 
     // Decode user transaction

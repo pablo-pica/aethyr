@@ -93,6 +93,11 @@ Status: "Warning: Missing User-dependent Assets"
 ## 📜 Audit Logs
 
 ### 2026-07-09
+- **Planner / Code Reviewer**: Resolved code review gaps:
+  1. Integrated the sponsored fee-bump relayer (`/api/sponsor`) in `useStellarWallet.ts` with transparent fallback to direct client-paid transaction submission.
+  2. Modified the `/api/sponsor` API route to fail gracefully with HTTP 503 if `SPONSOR_SECRET_KEY` is not configured, while allowing random mock key generation for tests.
+  3. Patched `release_milestone` and `auto_release_milestone` in the `aethyr-escrow` Rust contract to distribute all remaining locked funds on the final milestone, avoiding integer division basis point truncation (dust).
+  4. Extracted magic auto-release period seconds into a defined Rust constant `AUTO_RELEASE_PERIOD_SECONDS`.
 - **Planner / Architect**: Transitioned Playwright browser verification from python script to direct Playwright MCP tool usage. Deleted verify_ui.py and verify_ui_mcp.js. Updated docs/AGENTS.md, .agents/rules/checker.md, and .agents/workflows/verification-flow.md to use direct browser_navigate, browser_resize, and browser_snapshot tools for UI validation.
 - **Checker**: Executed comprehensive quality audit. Confirmed all 11/11 contract tests (`cargo test`) pass and 24/24 frontend unit tests (`npm run test`) pass. Verified 61 conventional commits are recorded in the repository. Active dev server running on port 3000. Verified responsive dashboard screenshots. Noted user-dependent assets (Loom video walkthrough and production release deployment status) are pending. Status updated to `Warning: Missing User-dependent Assets`.
 - **Builder**: Implemented Component 2 (Frontend & Gasless Relayer) and Component 3 (Documentation Updates):

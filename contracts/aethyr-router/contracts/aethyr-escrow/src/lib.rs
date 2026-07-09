@@ -31,6 +31,7 @@ pub enum DataKey {
 }
 
 pub const LOCK_PERIOD_SECONDS: u64 = 7 * 24 * 60 * 60; // 7 days lock period
+pub const AUTO_RELEASE_PERIOD_SECONDS: u64 = 7 * 24 * 60 * 60; // 7 days auto-release period
 
 pub trait AethyrEscrowTrait {
     /// Creates an escrow lock for a routed payment
@@ -231,8 +232,21 @@ impl AethyrEscrowTrait for AethyrEscrow {
         milestones.set(milestone_index, milestone.clone());
         escrow.milestones = milestones;
 
-        // Calculate payout amount based on weight
-        let payout_amount = (escrow.amount * milestone.payout_weight as i128) / 10000;
+        // Check if all milestones are now completed
+        let mut all_completed = true;
+        for m in escrow.milestones.iter() {
+            if !m.is_completed {
+                all_completed = false;
+                break;
+            }
+        }
+
+        // Calculate payout amount: if last milestone, release all remaining funds to avoid dust truncation
+        let payout_amount = if all_completed {
+            escrow.amount - escrow.released_amount
+        } else {
+            (escrow.amount * milestone.payout_weight as i128) / 10000
+        };
         escrow.released_amount += payout_amount;
 
         // Update persistent storage
@@ -407,7 +421,7 @@ impl AethyrEscrowTrait for AethyrEscrow {
             panic!("Milestone is disputed");
         }
 
-        if env.ledger().timestamp() < milestone.submitted_at + 604800 {
+        if env.ledger().timestamp() < milestone.submitted_at + AUTO_RELEASE_PERIOD_SECONDS {
             panic!("Auto-release period has not elapsed");
         }
 
@@ -418,8 +432,21 @@ impl AethyrEscrowTrait for AethyrEscrow {
         milestones.set(milestone_index, milestone.clone());
         escrow.milestones = milestones;
 
-        // Calculate payout amount based on weight
-        let payout_amount = (escrow.amount * milestone.payout_weight as i128) / 10000;
+        // Check if all milestones are now completed
+        let mut all_completed = true;
+        for m in escrow.milestones.iter() {
+            if !m.is_completed {
+                all_completed = false;
+                break;
+            }
+        }
+
+        // Calculate payout amount: if last milestone, release all remaining funds to avoid dust truncation
+        let payout_amount = if all_completed {
+            escrow.amount - escrow.released_amount
+        } else {
+            (escrow.amount * milestone.payout_weight as i128) / 10000
+        };
         escrow.released_amount += payout_amount;
 
         // Update persistent storage

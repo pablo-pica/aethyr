@@ -175,6 +175,72 @@ export function useStellarWallet() {
     });
   }, []);
 
+  // Submit transaction with optional fee sponsorship (relayer) and fallback
+  const submitTransaction = useCallback(async (signedTxXdr: string) => {
+    let txHash: string;
+    let isSponsored = false;
+
+    // Try gasless fee-bump relayer first
+    try {
+      const response = await fetch("/api/sponsor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ xdr: signedTxXdr }),
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        txHash = data.hash;
+        isSponsored = true;
+        console.log("Transaction sponsored successfully. Hash:", txHash);
+      } else {
+        console.warn("Sponsorship failed, falling back to direct submission:", data.error || "Unknown error");
+        // Fallback to direct submission
+        const signedTransaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);
+        const sendResponse = await rpcServer.sendTransaction(signedTransaction);
+        if (sendResponse.status === "ERROR") {
+          const errorMsg = sendResponse.errorResult 
+            ? sendResponse.errorResult.toXDR("base64")
+            : "Unknown error";
+          throw new Error(`Transaction submission error: ${errorMsg}`);
+        }
+        txHash = sendResponse.hash;
+      }
+    } catch (err) {
+      console.warn("Sponsorship failed due to error, falling back to direct submission:", err);
+      // Fallback to direct submission
+      const signedTransaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);
+      const sendResponse = await rpcServer.sendTransaction(signedTransaction);
+      if (sendResponse.status === "ERROR") {
+        const errorMsg = sendResponse.errorResult 
+          ? sendResponse.errorResult.toXDR("base64")
+          : "Unknown error";
+        throw new Error(`Transaction submission error: ${errorMsg}`);
+      }
+      txHash = sendResponse.hash;
+    }
+
+    // Poll for status
+    let getResponse = await rpcServer.getTransaction(txHash);
+    let retries = 0;
+    while (getResponse.status === "NOT_FOUND" && retries < 15) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      getResponse = await rpcServer.getTransaction(txHash);
+      retries++;
+    }
+
+    if (getResponse.status === "FAILED") {
+      throw new Error("Transaction execution failed on-chain.");
+    }
+
+    await checkConnection();
+
+    return {
+      hash: txHash,
+      result: getResponse,
+      isSponsored,
+    };
+  }, [checkConnection]);
+
   // Send XLM transaction
   const sendXLM = useCallback(async (destination: string, amount: string) => {
     const currentAddress = stateRef.current.address;
@@ -482,33 +548,7 @@ export function useStellarWallet() {
         throw new Error("Transaction was not signed.");
       }
 
-      const signedTransaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);
-      const sendResponse = await rpcServer.sendTransaction(signedTransaction);
-      if (sendResponse.status === "ERROR") {
-        const errorMsg = sendResponse.errorResult 
-          ? sendResponse.errorResult.toXDR("base64")
-          : "Unknown error";
-        throw new Error(`Transaction submission error: ${errorMsg}`);
-      }
-
-      let getResponse = await rpcServer.getTransaction(sendResponse.hash);
-      let retries = 0;
-      while (getResponse.status === "NOT_FOUND" && retries < 15) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        getResponse = await rpcServer.getTransaction(sendResponse.hash);
-        retries++;
-      }
-
-      if (getResponse.status === "FAILED") {
-        throw new Error("Transaction execution failed on-chain.");
-      }
-
-      await checkConnection();
-
-      return {
-        hash: sendResponse.hash,
-        result: getResponse,
-      };
+      return await submitTransaction(signedTxXdr);
     } catch (err: any) {
       console.error("Route to escrow failed:", err);
       throw new Error(parseWalletError(err, "transaction"));
@@ -568,33 +608,7 @@ export function useStellarWallet() {
         throw new Error("Transaction was not signed.");
       }
 
-      const signedTransaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);
-      const sendResponse = await rpcServer.sendTransaction(signedTransaction);
-      if (sendResponse.status === "ERROR") {
-        const errorMsg = sendResponse.errorResult 
-          ? sendResponse.errorResult.toXDR("base64")
-          : "Unknown error";
-        throw new Error(`Transaction submission error: ${errorMsg}`);
-      }
-
-      let getResponse = await rpcServer.getTransaction(sendResponse.hash);
-      let retries = 0;
-      while (getResponse.status === "NOT_FOUND" && retries < 15) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        getResponse = await rpcServer.getTransaction(sendResponse.hash);
-        retries++;
-      }
-
-      if (getResponse.status === "FAILED") {
-        throw new Error("Transaction execution failed on-chain.");
-      }
-
-      await checkConnection();
-
-      return {
-        hash: sendResponse.hash,
-        result: getResponse,
-      };
+      return await submitTransaction(signedTxXdr);
     } catch (err: any) {
       console.error("Release milestone failed:", err);
       throw new Error(parseWalletError(err, "transaction"));
@@ -651,33 +665,7 @@ export function useStellarWallet() {
         throw new Error("Transaction was not signed.");
       }
 
-      const signedTransaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);
-      const sendResponse = await rpcServer.sendTransaction(signedTransaction);
-      if (sendResponse.status === "ERROR") {
-        const errorMsg = sendResponse.errorResult 
-          ? sendResponse.errorResult.toXDR("base64")
-          : "Unknown error";
-        throw new Error(`Transaction submission error: ${errorMsg}`);
-      }
-
-      let getResponse = await rpcServer.getTransaction(sendResponse.hash);
-      let retries = 0;
-      while (getResponse.status === "NOT_FOUND" && retries < 15) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        getResponse = await rpcServer.getTransaction(sendResponse.hash);
-        retries++;
-      }
-
-      if (getResponse.status === "FAILED") {
-        throw new Error("Transaction execution failed on-chain.");
-      }
-
-      await checkConnection();
-
-      return {
-        hash: sendResponse.hash,
-        result: getResponse,
-      };
+      return await submitTransaction(signedTxXdr);
     } catch (err: any) {
       console.error("Refund escrow failed:", err);
       throw new Error(parseWalletError(err, "transaction"));
@@ -737,33 +725,7 @@ export function useStellarWallet() {
         throw new Error("Transaction was not signed.");
       }
 
-      const signedTransaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);
-      const sendResponse = await rpcServer.sendTransaction(signedTransaction);
-      if (sendResponse.status === "ERROR") {
-        const errorMsg = sendResponse.errorResult 
-          ? sendResponse.errorResult.toXDR("base64")
-          : "Unknown error";
-        throw new Error(`Transaction submission error: ${errorMsg}`);
-      }
-
-      let getResponse = await rpcServer.getTransaction(sendResponse.hash);
-      let retries = 0;
-      while (getResponse.status === "NOT_FOUND" && retries < 15) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        getResponse = await rpcServer.getTransaction(sendResponse.hash);
-        retries++;
-      }
-
-      if (getResponse.status === "FAILED") {
-        throw new Error("Transaction execution failed on-chain.");
-      }
-
-      await checkConnection();
-
-      return {
-        hash: sendResponse.hash,
-        result: getResponse,
-      };
+      return await submitTransaction(signedTxXdr);
     } catch (err: any) {
       console.error("Submit milestone failed:", err);
       throw new Error(parseWalletError(err, "transaction"));
@@ -823,33 +785,7 @@ export function useStellarWallet() {
         throw new Error("Transaction was not signed.");
       }
 
-      const signedTransaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);
-      const sendResponse = await rpcServer.sendTransaction(signedTransaction);
-      if (sendResponse.status === "ERROR") {
-        const errorMsg = sendResponse.errorResult 
-          ? sendResponse.errorResult.toXDR("base64")
-          : "Unknown error";
-        throw new Error(`Transaction submission error: ${errorMsg}`);
-      }
-
-      let getResponse = await rpcServer.getTransaction(sendResponse.hash);
-      let retries = 0;
-      while (getResponse.status === "NOT_FOUND" && retries < 15) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        getResponse = await rpcServer.getTransaction(sendResponse.hash);
-        retries++;
-      }
-
-      if (getResponse.status === "FAILED") {
-        throw new Error("Transaction execution failed on-chain.");
-      }
-
-      await checkConnection();
-
-      return {
-        hash: sendResponse.hash,
-        result: getResponse,
-      };
+      return await submitTransaction(signedTxXdr);
     } catch (err: any) {
       console.error("Dispute milestone failed:", err);
       throw new Error(parseWalletError(err, "transaction"));
@@ -907,33 +843,7 @@ export function useStellarWallet() {
         throw new Error("Transaction was not signed.");
       }
 
-      const signedTransaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);
-      const sendResponse = await rpcServer.sendTransaction(signedTransaction);
-      if (sendResponse.status === "ERROR") {
-        const errorMsg = sendResponse.errorResult 
-          ? sendResponse.errorResult.toXDR("base64")
-          : "Unknown error";
-        throw new Error(`Transaction submission error: ${errorMsg}`);
-      }
-
-      let getResponse = await rpcServer.getTransaction(sendResponse.hash);
-      let retries = 0;
-      while (getResponse.status === "NOT_FOUND" && retries < 15) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        getResponse = await rpcServer.getTransaction(sendResponse.hash);
-        retries++;
-      }
-
-      if (getResponse.status === "FAILED") {
-        throw new Error("Transaction execution failed on-chain.");
-      }
-
-      await checkConnection();
-
-      return {
-        hash: sendResponse.hash,
-        result: getResponse,
-      };
+      return await submitTransaction(signedTxXdr);
     } catch (err: any) {
       console.error("Auto-release milestone failed:", err);
       throw new Error(parseWalletError(err, "transaction"));
