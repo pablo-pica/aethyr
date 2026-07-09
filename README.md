@@ -107,6 +107,8 @@ aethyr/
 
 Here are the key implementation files:
 * [page.tsx](./src/app/page.tsx): The primary container UI managing viewports, notched margin wrappers, tabs, and form submissions.
+* [lib.rs (Escrow)](./contracts/aethyr-router/contracts/aethyr-escrow/src/lib.rs): Core milestone escrow logic containing freelancer submissions, client disputes, oracle/manual milestone releases, and time-locked auto-releases.
+* [lib.rs (Router)](./contracts/aethyr-router/contracts/aethyr-router/src/lib.rs): Payment routing contract that coordinates DEX swaps and seamlessly routes payments directly into custom milestone escrows.
 * [useFreighter.ts](./src/hooks/useFreighter.ts): Core wallet connection logic encapsulating network detection and sign/transfer commands.
 * [ProfileDrawer.tsx](./src/components/ProfileDrawer.tsx): Side drawer container tracking wallet addresses and balance states.
 * [BottomNav.tsx](./src/components/BottomNav.tsx): PWA layout switcher component handling navigation tabs.

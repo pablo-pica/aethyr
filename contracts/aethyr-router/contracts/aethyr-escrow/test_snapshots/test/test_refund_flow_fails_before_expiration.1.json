@@ -91,10 +91,26 @@
                         },
                         {
                           "key": {
+                            "symbol": "is_disputed"
+                          },
+                          "val": {
+                            "bool": false
+                          }
+                        },
+                        {
+                          "key": {
                             "symbol": "payout_weight"
                           },
                           "val": {
                             "u32": 10000
+                          }
+                        },
+                        {
+                          "key": {
+                            "symbol": "submitted_at"
+                          },
+                          "val": {
+                            "u64": "0"
                           }
                         }
                       ]
@@ -244,10 +260,26 @@
                             },
                             {
                               "key": {
+                                "symbol": "is_disputed"
+                              },
+                              "val": {
+                                "bool": false
+                              }
+                            },
+                            {
+                              "key": {
                                 "symbol": "payout_weight"
                               },
                               "val": {
                                 "u32": 10000
+                              }
+                            },
+                            {
+                              "key": {
+                                "symbol": "submitted_at"
+                              },
+                              "val": {
+                                "u64": "0"
                               }
                             }
                           ]

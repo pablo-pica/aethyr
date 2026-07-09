@@ -7,6 +7,8 @@ pub struct Milestone {
     pub description: Symbol,   // Short description of the work
     pub payout_weight: u32,   // Payout percentage represented in basis points (e.g., 5000 = 50.00%)
     pub is_completed: bool,   // Completion status
+    pub submitted_at: u64,    // Ledger timestamp
+    pub is_disputed: bool,    // Dispute status
 }
 
 #[contracttype]
@@ -65,6 +67,29 @@ pub trait AethyrEscrowTrait {
         escrow_id: BytesN<32>, 
         sender: Address
     );
+
+    /// Submits a milestone by a freelancer (escrow receiver)
+    fn submit_milestone(
+        env: Env,
+        escrow_id: BytesN<32>,
+        milestone_index: u32,
+        freelancer: Address,
+    );
+
+    /// Disputes a milestone by a client (escrow sender)
+    fn dispute_milestone(
+        env: Env,
+        escrow_id: BytesN<32>,
+        milestone_index: u32,
+        client: Address,
+    );
+
+    /// Auto-releases a milestone after a 7-day period if not disputed
+    fn auto_release_milestone(
+        env: Env,
+        escrow_id: BytesN<32>,
+        milestone_index: u32,
+    );
 }
 
 #[contract]
@@ -121,6 +146,8 @@ impl AethyrEscrowTrait for AethyrEscrow {
                 description: milestone.description,
                 payout_weight: milestone.payout_weight,
                 is_completed: false, // Ensure initially false
+                submitted_at: 0,
+                is_disputed: false,
             });
         }
         if total_weight != 10000 {
@@ -199,6 +226,8 @@ impl AethyrEscrowTrait for AethyrEscrow {
 
         // Mark milestone as completed
         milestone.is_completed = true;
+        milestone.submitted_at = 0;
+        milestone.is_disputed = false;
         milestones.set(milestone_index, milestone.clone());
         escrow.milestones = milestones;
 
@@ -263,6 +292,149 @@ impl AethyrEscrowTrait for AethyrEscrow {
         env.events().publish(
             (Symbol::new(&env, "refund_escrow"), escrow_id, sender),
             refund_amount,
+        );
+    }
+
+    fn submit_milestone(
+        env: Env,
+        escrow_id: BytesN<32>,
+        milestone_index: u32,
+        freelancer: Address,
+    ) {
+        freelancer.require_auth();
+
+        let mut escrow: Escrow = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Escrow(escrow_id.clone()))
+            .unwrap_or_else(|| panic!("Escrow not found"));
+
+        if freelancer != escrow.receiver {
+            panic!("Freelancer is not the escrow receiver");
+        }
+
+        if milestone_index >= escrow.milestones.len() {
+            panic!("Invalid milestone index");
+        }
+
+        let mut milestones = escrow.milestones;
+        let mut milestone = milestones.get(milestone_index).unwrap();
+
+        if milestone.is_completed {
+            panic!("Milestone already completed");
+        }
+
+        milestone.submitted_at = env.ledger().timestamp();
+        milestones.set(milestone_index, milestone.clone());
+        escrow.milestones = milestones;
+
+        env.storage().persistent().set(&DataKey::Escrow(escrow_id.clone()), &escrow);
+
+        env.events().publish(
+            (Symbol::new(&env, "submit_milestone"), escrow_id, milestone_index),
+            freelancer,
+        );
+    }
+
+    fn dispute_milestone(
+        env: Env,
+        escrow_id: BytesN<32>,
+        milestone_index: u32,
+        client: Address,
+    ) {
+        client.require_auth();
+
+        let mut escrow: Escrow = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Escrow(escrow_id.clone()))
+            .unwrap_or_else(|| panic!("Escrow not found"));
+
+        if client != escrow.sender {
+            panic!("Client is not the escrow sender");
+        }
+
+        if milestone_index >= escrow.milestones.len() {
+            panic!("Invalid milestone index");
+        }
+
+        let mut milestones = escrow.milestones;
+        let mut milestone = milestones.get(milestone_index).unwrap();
+
+        if milestone.is_completed {
+            panic!("Milestone already completed");
+        }
+
+        milestone.is_disputed = true;
+        milestones.set(milestone_index, milestone.clone());
+        escrow.milestones = milestones;
+
+        env.storage().persistent().set(&DataKey::Escrow(escrow_id.clone()), &escrow);
+
+        env.events().publish(
+            (Symbol::new(&env, "dispute_milestone"), escrow_id, milestone_index),
+            client,
+        );
+    }
+
+    fn auto_release_milestone(
+        env: Env,
+        escrow_id: BytesN<32>,
+        milestone_index: u32,
+    ) {
+        let mut escrow: Escrow = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Escrow(escrow_id.clone()))
+            .unwrap_or_else(|| panic!("Escrow not found"));
+
+        if milestone_index >= escrow.milestones.len() {
+            panic!("Invalid milestone index");
+        }
+
+        let mut milestones = escrow.milestones;
+        let mut milestone = milestones.get(milestone_index).unwrap();
+
+        if milestone.is_completed {
+            panic!("Milestone already completed");
+        }
+
+        if milestone.submitted_at == 0 {
+            panic!("Milestone has not been submitted");
+        }
+
+        if milestone.is_disputed {
+            panic!("Milestone is disputed");
+        }
+
+        if env.ledger().timestamp() < milestone.submitted_at + 604800 {
+            panic!("Auto-release period has not elapsed");
+        }
+
+        // Mark milestone as completed
+        milestone.is_completed = true;
+        milestone.submitted_at = 0;
+        milestone.is_disputed = false;
+        milestones.set(milestone_index, milestone.clone());
+        escrow.milestones = milestones;
+
+        // Calculate payout amount based on weight
+        let payout_amount = (escrow.amount * milestone.payout_weight as i128) / 10000;
+        escrow.released_amount += payout_amount;
+
+        // Update persistent storage
+        env.storage().persistent().set(&DataKey::Escrow(escrow_id.clone()), &escrow);
+
+        // Transfer funds if payout_amount is positive
+        if payout_amount > 0 {
+            let token_client = token::Client::new(&env, &escrow.token);
+            token_client.transfer(&env.current_contract_address(), &escrow.receiver, &payout_amount);
+        }
+
+        // Emit custom event
+        env.events().publish(
+            (Symbol::new(&env, "auto_release_milestone"), escrow_id, milestone_index),
+            payout_amount,
         );
     }
 }

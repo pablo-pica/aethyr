@@ -158,11 +158,15 @@ fn test_route_to_escrow() {
         description: Symbol::new(&env, "design"),
         payout_weight: 5000,
         is_completed: false,
+        submitted_at: 0,
+        is_disputed: false,
     };
     let m2 = aethyr_escrow::Milestone {
         description: Symbol::new(&env, "impl"),
         payout_weight: 5000,
         is_completed: false,
+        submitted_at: 0,
+        is_disputed: false,
     };
     let milestones = vec![&env, m1, m2];
 

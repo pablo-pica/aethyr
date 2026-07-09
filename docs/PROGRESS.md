@@ -7,7 +7,7 @@ This is a living document updated autonomously by agents at the end of each task
 ## ⚡ Active Task
 
 ```yaml
-Current Task: "Add .playwright-mcp to .gitignore"
+Current Task: "Freelancer Escrow Contracts & Tests"
 Assigned Agent: Builder
 Status: Completed
 ```
@@ -93,6 +93,13 @@ Status: Completed
 ## 📜 Audit Logs
 
 ### 2026-07-09
+- **Builder**: Implemented Component 1 of the Freelancer Escrow feature set:
+  1. Updated `Milestone` struct with `submitted_at` and `is_disputed` fields.
+  2. Implemented `submit_milestone`, `dispute_milestone`, and `auto_release_milestone` in the `AethyrEscrow` contract.
+  3. Ensured `release_milestone` resets `submitted_at` and `is_disputed`.
+  4. Updated manual `Milestone` instantiations across all test files.
+  5. Added comprehensive tests `test_dispute_and_auto_release_flow`, `test_auto_release_fails_not_submitted`, `test_auto_release_fails_before_time`, and `test_auto_release_fails_if_disputed` in `aethyr-escrow/src/test.rs`.
+  6. Verified that all 11 cargo tests pass successfully.
 - **Planner / Architect**: Audited `.agents` workspace configurations. Updated `.agents/rules/checker.md`, `.agents/workflows/verification-flow.md`, and `docs/AGENTS.md` to transition the UI screenshot flow from the local Python script to the Playwright MCP server, resolving the python package installation error. Successfully ran the Playwright MCP browser automation code to capture mobile screenshots.
 - **Checker**: Audited Phase 3 compliance. Confirmed existence of `aethyr-escrow` Rust contract and CI/CD config. All 7/7 Rust contract tests pass and all 20/20 frontend tests pass (including additional validateStellarAddress unit tests). PWA layouts, responsiveness, error handling and state indicators are fully implemented. Git log contains 52 conventional commits (exceeding 10+ requirement). Added Orange Belt submission assets placeholders to `README.md`. Updated status to `Warning: Missing User-dependent Assets` due to pending git push, missing screenshots, Loom walkthrough, and Vercel release link.
 - **Builder**: Added a unit test case for `validateStellarAddress` verifying handling of non-string inputs (null, undefined, etc.) and invalid strings containing special/non-alphanumeric characters.
