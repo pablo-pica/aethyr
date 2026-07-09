@@ -129,6 +129,16 @@ Aethyr is designed to feel like a native mobile application. The interface scale
 |:---:|:---:|
 | <img src="./docs/assets/screen5.png" width="220" alt="Multi-wallet Modal Selector"> | <img src="./docs/assets/screen6.png" width="220" alt="Soroban Routed Tx Status"> |
 
+### 🟠 Orange Belt Viewports & Verification
+
+| Mobile Viewport Layout | GitHub Actions CI/CD Pipeline | Test Suite Output |
+|:---:|:---:|:---:|
+| <img src="./docs/assets/screen1.png" width="200" alt="Mobile Viewport"> | *[Pending: GitHub Actions CI Dashboard Screenshot]* | *[Pending: Terminal Test Suite Run Screenshot]* |
+
+* **Verified Escrow Contract Address**: `[Pending Testnet Deployment]`
+* **Advanced Contract Call Tx Hash**: `[Pending Testnet Execution]`
+* **dApp Walkthrough Demo Video**: `[Pending Walkthrough Video Link]`
+
 ---
 
 ## 🛠️ Step-by-Step Quickstart
