@@ -76,6 +76,11 @@ Aethyr uses two core Soroban smart contracts written in Rust:
 ### 1. `aethyr-router` (Payment Router)
 Handles multi-token routing operations, converting asset A to asset B via intermediate pools or orderbooks. It validates the output against the client-side slippage tolerance and routes the payment.
 
+#### Mock Swap Simulation Fallback
+For testing or networks where standard liquidity pools do not exist, the router executes a mock swap simulation:
+- **Conversion Rate**: A mock swap rate of `1.05` (representing 1 token_in = 1.05 token_out) is simulated if the contract holds sufficient balance of the target output token (`token_out`).
+- **Direct Forwarding Fallback**: If the router contract holds insufficient balance of the output token, or if the input and output tokens are the same, it falls back to directly forwarding the input token (`token_in`) to the destination.
+
 ```rust
 pub trait AethyrRouterTrait {
     /// Executes a routed payment from sender to recipient
@@ -92,13 +97,42 @@ pub trait AethyrRouterTrait {
         amount_in: i128,
         min_amount_out: i128,
     ) -> i128; // Returns actual amount transferred to destination
+
+    /// Executes a routed payment from source, swaps the token, and locks it into an escrow contract
+    /// - `source`: Sender account (requires signature verification via require_auth)
+    /// - `escrow_contract`: Target escrow contract address
+    /// - `receiver`: Recipient account receiving payouts upon milestone completion
+    /// - `path`: Vector of token contract addresses representing the route
+    /// - `amount_in`: Exact amount of token_in to swap
+    /// - `min_amount_out`: Slippage tolerance threshold
+    /// - `milestones`: Milestones configuration for the escrow
+    fn route_to_escrow(
+        env: Env,
+        source: Address,
+        escrow_contract: Address,
+        receiver: Address,
+        path: Vec<Address>,
+        amount_in: i128,
+        min_amount_out: i128,
+        milestones: Vec<Milestone>,
+    ) -> BytesN<32>;
 }
 ```
 
 ### 2. `aethyr-escrow` (Milestone Escrow)
 Locks funds and releases them to the recipient in installments as milestone criteria are completed. The releases are authorized by a designated third-party validator (oracle or notary) or by mutual agreement of the parties.
 
+#### Initialization
+The escrow contract requires initialization before use:
+- **`initialize(env: Env, validator: Address)`**: Configures the designated validator/oracle address. If already initialized, it will panic with `"Already initialized"`.
+
 ```rust
+// Standalone implementation functions
+impl AethyrEscrow {
+    /// Initializes the contract with a designated global validator/oracle address
+    pub fn initialize(env: Env, validator: Address);
+}
+
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Milestone {

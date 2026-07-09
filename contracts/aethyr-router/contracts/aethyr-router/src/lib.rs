@@ -3,18 +3,40 @@ use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, Symbol, Vec, tok
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 use aethyr_escrow::{Milestone, AethyrEscrowClient};
 
+pub trait AethyrRouterTrait {
+    fn route_payment(
+        env: Env,
+        source: Address,
+        destination: Address,
+        path: Vec<Address>,
+        amount_in: i128,
+        min_amount_out: i128,
+    ) -> i128;
+
+    fn route_to_escrow(
+        env: Env,
+        source: Address,
+        escrow_contract: Address,
+        receiver: Address,
+        path: Vec<Address>,
+        amount_in: i128,
+        min_amount_out: i128,
+        milestones: Vec<Milestone>,
+    ) -> BytesN<32>;
+}
+
 #[contract]
 pub struct AethyrRouter;
 
 #[contractimpl]
-impl AethyrRouter {
+impl AethyrRouterTrait for AethyrRouter {
     /// Executes a routed payment from sender to recipient
     /// - `source`: Sender account (requires signature verification via require_auth)
     /// - `destination`: Recipient account or target escrow address
     /// - `path`: Vector of token contract addresses representing the route (e.g., [PHP, USDC, XLM])
     /// - `amount_in`: Exact amount of token_in to swap
     /// - `min_amount_out`: Slippage tolerance threshold
-    pub fn route_payment(
+    fn route_payment(
         env: Env,
         source: Address,
         destination: Address,
@@ -98,7 +120,7 @@ impl AethyrRouter {
     /// - `amount_in`: Exact amount of token_in to swap
     /// - `min_amount_out`: Slippage tolerance threshold
     /// - `milestones`: Milestones configuration for the escrow
-    pub fn route_to_escrow(
+    fn route_to_escrow(
         env: Env,
         source: Address,
         escrow_contract: Address,
