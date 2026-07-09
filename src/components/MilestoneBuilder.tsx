@@ -17,9 +17,26 @@ interface MilestoneBuilderProps {
 }
 
 export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuilderProps) {
+  const [autoBalance, setAutoBalance] = React.useState(false);
+
   const totalBps = milestones.reduce((sum, m) => sum + m.payout_weight, 0);
   const totalPercent = (totalBps / 100).toFixed(2);
   const isValid = totalBps === 10000;
+
+  const balanceMilestones = (list: Milestone[]): Milestone[] => {
+    if (list.length === 0) return [];
+    const equalBps = Math.floor(10000 / list.length);
+    let sum = 0;
+    return list.map((m, i) => {
+      const isLast = i === list.length - 1;
+      const weight = isLast ? (10000 - sum) : equalBps;
+      sum += weight;
+      return {
+        ...m,
+        payout_weight: weight,
+      };
+    });
+  };
 
   const handleUpdateDescription = (index: number, desc: string) => {
     const updated = [...milestones];
@@ -28,6 +45,7 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
   };
 
   const handleUpdateWeight = (index: number, percentVal: string) => {
+    if (autoBalance) return;
     const numeric = parseFloat(percentVal) || 0;
     const bps = Math.round(numeric * 100);
     const updated = [...milestones];
@@ -36,39 +54,42 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
   };
 
   const handleAddMilestone = () => {
-    const remainingBps = Math.max(0, 10000 - totalBps);
-    const updated = [
-      ...milestones,
-      {
-        description: `Milestone ${milestones.length + 1}`,
-        payout_weight: remainingBps,
-        is_completed: false,
-        is_disputed: false,
-        submitted_at: 0,
-      },
-    ];
-    onChange(updated);
+    const newMilestone: Milestone = {
+      description: `Milestone ${milestones.length + 1}`,
+      payout_weight: 0,
+      is_completed: false,
+      is_disputed: false,
+      submitted_at: 0,
+    };
+    const updated = [...milestones, newMilestone];
+    if (autoBalance) {
+      onChange(balanceMilestones(updated));
+    } else {
+      const remainingBps = Math.max(0, 10000 - totalBps);
+      updated[updated.length - 1].payout_weight = remainingBps;
+      onChange(updated);
+    }
   };
 
   const handleRemoveMilestone = (index: number) => {
     const updated = milestones.filter((_, i) => i !== index);
-    onChange(updated);
+    if (autoBalance) {
+      onChange(balanceMilestones(updated));
+    } else {
+      onChange(updated);
+    }
   };
 
   const handleAutoBalance = () => {
     if (milestones.length === 0) return;
-    const equalBps = Math.floor(10000 / milestones.length);
-    let sum = 0;
-    const updated = milestones.map((m, i) => {
-      const isLast = i === milestones.length - 1;
-      const weight = isLast ? (10000 - sum) : equalBps;
-      sum += weight;
-      return {
-        ...m,
-        payout_weight: weight,
-      };
-    });
-    onChange(updated);
+    onChange(balanceMilestones(milestones));
+  };
+
+  const handleToggleAutoBalance = (checked: boolean) => {
+    setAutoBalance(checked);
+    if (checked && milestones.length > 0) {
+      onChange(balanceMilestones(milestones));
+    }
   };
 
   return (
@@ -78,14 +99,32 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
           <span>Milestone Editor</span>
           <span className="text-xs font-normal text-slate-400">({milestones.length} milestones)</span>
         </h3>
-        <button
-          type="button"
-          onClick={handleAutoBalance}
-          className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
-        >
-          <Scale className="w-3.5 h-3.5" />
-          Auto-Balance
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Auto-Balance Toggle */}
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <span className="text-xs text-slate-400 font-medium">Auto-Balance</span>
+            <div className="relative flex items-center">
+              <input
+                type="checkbox"
+                checked={autoBalance}
+                onChange={(e) => handleToggleAutoBalance(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-7 h-4 bg-slate-800 rounded-full border border-slate-700 peer-checked:bg-teal-500/20 peer-checked:border-teal-500/40 transition-all duration-200"></div>
+              <div className="absolute left-[3px] w-2 h-2 bg-slate-400 rounded-full peer-checked:translate-x-3 peer-checked:bg-teal-400 transition-all duration-200"></div>
+            </div>
+          </label>
+
+          <button
+            type="button"
+            onClick={handleAutoBalance}
+            disabled={autoBalance}
+            className={`text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            <Scale className="w-3.5 h-3.5" />
+            Auto-Balance
+          </button>
+        </div>
       </div>
 
       {/* Progress bar visualizer */}
@@ -112,47 +151,49 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
         })}
       </div>
 
-      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+      <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
         {milestones.length === 0 ? (
           <p className="text-xs text-slate-500 text-center py-4">No milestones defined. Add one below.</p>
         ) : (
           milestones.map((m, idx) => (
-            <div key={idx} className="py-3.5 border-b border-space-800/80 space-y-2.5 last:border-b-0">
-               {/* Description Input & Delete Button Row */}
-               <div className="flex gap-2.5 items-center">
-                 <span className="text-xs font-mono text-slate-500 w-5 text-right shrink-0">{idx + 1}.</span>
-                 <input
-                   type="text"
-                   value={m.description}
-                   onChange={(e) => handleUpdateDescription(idx, e.target.value)}
-                   placeholder="Milestone description"
-                   className="flex-1 min-w-0 h-12 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl px-3 text-sm text-slate-200 outline-none transition-all focus-ring"
-                 />
-                 <button
-                   type="button"
-                   onClick={() => handleRemoveMilestone(idx)}
-                   className="p-2 rounded-xl hover:bg-red-500/10 text-slate-500 hover:text-red-400 active:scale-90 transition-all cursor-pointer focus-ring shrink-0"
-                 >
-                   <Trash2 className="w-4 h-4" />
-                 </button>
-               </div>
- 
-               {/* Weight Input Row */}
-               <div className="flex items-center justify-between pl-[30px]">
-                 <span className="text-[11px] font-bold text-slate-400">Payout weight:</span>
-                 <div className="flex items-center gap-1.5 w-28">
-                   <input
-                     type="number"
-                     step="0.01"
-                     value={Number((m.payout_weight / 100).toFixed(2))}
-                     onChange={(e) => handleUpdateWeight(idx, e.target.value)}
-                     placeholder="0.00"
-                     className="w-full h-12 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl px-2.5 text-sm text-slate-200 font-mono text-right outline-none transition-all focus-ring"
-                   />
-                   <span className="text-xs text-slate-500 font-mono select-none">%</span>
-                 </div>
-               </div>
-             </div>
+            <div key={idx} className="flex gap-2 items-center py-2 border-b border-space-800/80 last:border-b-0">
+              {/* Index number */}
+              <span className="text-xs font-mono text-slate-500 w-5 text-right shrink-0">{idx + 1}.</span>
+
+              {/* Description input */}
+              <input
+                type="text"
+                value={m.description}
+                onChange={(e) => handleUpdateDescription(idx, e.target.value)}
+                placeholder="Milestone description"
+                className="flex-1 min-w-0 h-10 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl px-3 text-xs text-slate-200 outline-none transition-all focus-ring"
+              />
+
+              {/* Weight input container */}
+              <div className="relative w-[72px] shrink-0">
+                <input
+                  type="number"
+                  step="0.01"
+                  value={Number((m.payout_weight / 100).toFixed(2))}
+                  onChange={(e) => handleUpdateWeight(idx, e.target.value)}
+                  placeholder="0.00"
+                  readOnly={autoBalance}
+                  className={`w-full h-10 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl pl-2 pr-5 text-xs text-slate-200 font-mono text-right outline-none transition-all focus-ring ${
+                    autoBalance ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-mono select-none pointer-events-none">%</span>
+              </div>
+
+              {/* Remove button */}
+              <button
+                type="button"
+                onClick={() => handleRemoveMilestone(idx)}
+                className="p-2 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400 active:scale-90 transition-all cursor-pointer focus-ring shrink-0"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           ))
         )}
       </div>
