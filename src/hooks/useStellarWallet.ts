@@ -97,6 +97,16 @@ export function useStellarWallet() {
   // Update address and balance state
   const checkConnection = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    if (typeof window !== "undefined" && localStorage.getItem("aethyr_mock_wallet") === "true") {
+      setState({
+        isConnected: true,
+        address: "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX",
+        balance: "4827.50",
+        error: null,
+        isLoading: false,
+      });
+      return;
+    }
     try {
       getKit();
       const { address } = await StellarWalletsKit.getAddress();
@@ -134,20 +144,29 @@ export function useStellarWallet() {
   const connect = useCallback(async (walletId?: string) => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
-      getKit();
       let address = "";
-      if (walletId) {
-        await StellarWalletsKit.setWallet(walletId);
-        const res = await StellarWalletsKit.getAddress();
-        address = res.address;
+      let balance = "0.0000000";
+      if (walletId === "mock") {
+        address = "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX";
+        balance = "4827.50";
+        if (typeof window !== "undefined") {
+          localStorage.setItem("aethyr_mock_wallet", "true");
+        }
       } else {
-        const res = await StellarWalletsKit.authModal();
-        address = res.address;
+        getKit();
+        if (walletId) {
+          await StellarWalletsKit.setWallet(walletId);
+          const res = await StellarWalletsKit.getAddress();
+          address = res.address;
+        } else {
+          const res = await StellarWalletsKit.authModal();
+          address = res.address;
+        }
+        if (!address) {
+          throw new Error("No address returned from StellarWalletsKit.");
+        }
+        balance = await fetchBalance(address);
       }
-      if (!address) {
-        throw new Error("No address returned from StellarWalletsKit.");
-      }
-      const balance = await fetchBalance(address);
       setState({
         isConnected: true,
         address,
@@ -168,11 +187,17 @@ export function useStellarWallet() {
   // Disconnect wallet
   const disconnect = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true }));
-    try {
-      getKit();
-      await StellarWalletsKit.disconnect();
-    } catch (err) {
-      console.error("SWK disconnect failed:", err);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("aethyr_mock_wallet");
+    }
+    const currentAddress = stateRef.current.address;
+    if (currentAddress && currentAddress !== "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX") {
+      try {
+        getKit();
+        await StellarWalletsKit.disconnect();
+      } catch (err) {
+        console.error("SWK disconnect failed:", err);
+      }
     }
     setState({
       isConnected: false,
@@ -256,6 +281,14 @@ export function useStellarWallet() {
       throw new Error("Wallet is not connected.");
     }
     
+    if (currentAddress === "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      return {
+        hash: "mock_tx_hash_" + Math.random().toString(36).substr(2, 9),
+        ledger: 12345,
+      };
+    }
+
     try {
       getKit();
       // 1. Load sender account to fetch correct sequence number
@@ -313,6 +346,14 @@ export function useStellarWallet() {
     const currentAddress = stateRef.current.address;
     if (!currentAddress) {
       throw new Error("Wallet is not connected.");
+    }
+
+    if (currentAddress === "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      return {
+        hash: "mock_tx_hash_" + Math.random().toString(36).substr(2, 9),
+        result: { status: "SUCCESS" },
+      };
     }
 
     try {
@@ -471,6 +512,14 @@ export function useStellarWallet() {
       throw new Error("Wallet is not connected.");
     }
 
+    if (currentAddress === "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      return {
+        hash: "mock_tx_hash_" + Math.random().toString(36).substr(2, 9),
+        result: { status: "SUCCESS" },
+      };
+    }
+
     try {
       getKit();
       const contractId = process.env.NEXT_PUBLIC_ROUTER_CONTRACT_ID;
@@ -574,6 +623,14 @@ export function useStellarWallet() {
       throw new Error("Wallet is not connected.");
     }
 
+    if (currentAddress === "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      return {
+        hash: "mock_tx_hash_" + Math.random().toString(36).substr(2, 9),
+        result: { status: "SUCCESS" },
+      };
+    }
+
     try {
       getKit();
       const account = await horizonServer.loadAccount(currentAddress);
@@ -633,6 +690,14 @@ export function useStellarWallet() {
       throw new Error("Wallet is not connected.");
     }
 
+    if (currentAddress === "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      return {
+        hash: "mock_tx_hash_" + Math.random().toString(36).substr(2, 9),
+        result: { status: "SUCCESS" },
+      };
+    }
+
     try {
       getKit();
       const account = await horizonServer.loadAccount(currentAddress);
@@ -689,6 +754,14 @@ export function useStellarWallet() {
     const currentAddress = stateRef.current.address;
     if (!currentAddress) {
       throw new Error("Wallet is not connected.");
+    }
+
+    if (currentAddress === "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      return {
+        hash: "mock_tx_hash_" + Math.random().toString(36).substr(2, 9),
+        result: { status: "SUCCESS" },
+      };
     }
 
     try {
@@ -751,6 +824,14 @@ export function useStellarWallet() {
       throw new Error("Wallet is not connected.");
     }
 
+    if (currentAddress === "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      return {
+        hash: "mock_tx_hash_" + Math.random().toString(36).substr(2, 9),
+        result: { status: "SUCCESS" },
+      };
+    }
+
     try {
       getKit();
       const account = await horizonServer.loadAccount(currentAddress);
@@ -809,6 +890,14 @@ export function useStellarWallet() {
     const currentAddress = stateRef.current.address;
     if (!currentAddress) {
       throw new Error("Wallet is not connected.");
+    }
+
+    if (currentAddress === "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      return {
+        hash: "mock_tx_hash_" + Math.random().toString(36).substr(2, 9),
+        result: { status: "SUCCESS" },
+      };
     }
 
     try {

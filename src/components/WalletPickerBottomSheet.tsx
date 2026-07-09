@@ -26,6 +26,7 @@ export default function WalletPickerBottomSheet({
     { id: "xbull", name: "xBull", icon: "🐂", installed: false },
     { id: "albedo", name: "Albedo", icon: "🌌", installed: false },
     { id: "lobstr", name: "Lobstr", icon: "🦞", installed: true },
+    { id: "mock", name: "Mock Sandbox", icon: "🤖", installed: true },
   ]);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function WalletPickerBottomSheet({
         { id: "xbull", name: "xBull", icon: "🐂", installed: isXbullInstalled },
         { id: "albedo", name: "Albedo", icon: "🌌", installed: isAlbedoInstalled },
         { id: "lobstr", name: "Lobstr", icon: "🦞", installed: true },
+        { id: "mock", name: "Mock Sandbox", icon: "🤖", installed: true },
       ]);
     }
   }, [isOpen]);
