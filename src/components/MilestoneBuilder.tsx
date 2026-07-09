@@ -15,11 +15,10 @@ export interface Milestone {
 interface MilestoneBuilderProps {
   milestones: Milestone[];
   onChange: (milestones: Milestone[]) => void;
+  onClose?: () => void;
 }
 
-export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuilderProps) {
-  const [autoBalance, setAutoBalance] = React.useState(false);
-
+export default function MilestoneBuilder({ milestones, onChange, onClose }: MilestoneBuilderProps) {
   const totalBps = milestones.reduce((sum, m) => sum + m.payout_weight, 0);
   const totalPercent = (totalBps / 100).toFixed(2);
   const isValid = totalBps === 10000;
@@ -46,7 +45,6 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
   };
 
   const handleUpdateWeight = (index: number, percentVal: string) => {
-    if (autoBalance) return;
     const numeric = parseFloat(percentVal) || 0;
     const bps = Math.round(numeric * 100);
     const updated = [...milestones];
@@ -63,34 +61,19 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
       submitted_at: 0,
     };
     const updated = [...milestones, newMilestone];
-    if (autoBalance) {
-      onChange(balanceMilestones(updated));
-    } else {
-      const remainingBps = Math.max(0, 10000 - totalBps);
-      updated[updated.length - 1].payout_weight = remainingBps;
-      onChange(updated);
-    }
+    const remainingBps = Math.max(0, 10000 - totalBps);
+    updated[updated.length - 1].payout_weight = remainingBps;
+    onChange(updated);
   };
 
   const handleRemoveMilestone = (index: number) => {
     const updated = milestones.filter((_, i) => i !== index);
-    if (autoBalance) {
-      onChange(balanceMilestones(updated));
-    } else {
-      onChange(updated);
-    }
+    onChange(updated);
   };
 
   const handleAutoBalance = () => {
     if (milestones.length === 0) return;
     onChange(balanceMilestones(milestones));
-  };
-
-  const handleToggleAutoBalance = (checked: boolean) => {
-    setAutoBalance(checked);
-    if (checked && milestones.length > 0) {
-      onChange(balanceMilestones(milestones));
-    }
   };
 
   return (
@@ -101,26 +84,11 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
           <span className="text-xs font-normal text-slate-400">({milestones.length} milestones)</span>
         </h3>
         <div className="flex items-center gap-3">
-          {/* Auto-Balance Toggle */}
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <span className="text-xs text-slate-400 font-medium">Auto-Balance</span>
-            <div className="relative flex items-center">
-              <input
-                type="checkbox"
-                checked={autoBalance}
-                onChange={(e) => handleToggleAutoBalance(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-7 h-4 bg-slate-800 rounded-full border border-slate-700 peer-checked:bg-teal-500/20 peer-checked:border-teal-500/40 transition-all duration-200"></div>
-              <div className="absolute left-[3px] w-2 h-2 bg-slate-400 rounded-full peer-checked:translate-x-3 peer-checked:bg-teal-400 transition-all duration-200"></div>
-            </div>
-          </label>
-
           <button
             type="button"
             onClick={handleAutoBalance}
-            disabled={autoBalance}
-            className={`text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
+            disabled={milestones.length === 0}
+            className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Scale className="w-3.5 h-3.5" />
             Split Evenly
@@ -167,20 +135,19 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
                 value={m.description}
                 onChange={(e) => handleUpdateDescription(idx, e.target.value)}
                 placeholder="Milestone description"
-                className="flex-1 min-w-0 h-10 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl px-3 text-xs text-slate-200 outline-none transition-all focus-ring"
+                className="flex-1 min-w-0 h-12 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl px-3 text-sm text-slate-200 outline-none transition-all focus-ring"
               />
 
               {/* Weight input container */}
               <div className="flex items-center gap-1.5 shrink-0">
-                <div className="w-[116px]">
+                <div className="w-[136px]">
                   <CustomNumberInput
                     value={Number((m.payout_weight / 100).toFixed(2)).toString()}
                     onChange={(val) => handleUpdateWeight(idx, val)}
                     min={0}
                     max={100}
                     step={1}
-                    disabled={autoBalance}
-                    compact={true}
+                    size="lg"
                   />
                 </div>
                 <span className="text-xs text-slate-500 font-mono select-none">%</span>
@@ -230,6 +197,15 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
           </>
         )}
       </div>
+
+      {/* Apply Milestones CTA button */}
+      <button
+        type="button"
+        onClick={() => onClose?.()}
+        className="w-full h-12 rounded-xl bg-gradient-to-r from-teal-400 to-primary-indigo text-xs font-bold text-white flex items-center justify-center gap-1.5 hover:shadow-lg hover:shadow-teal-500/10 active:scale-95 transition-all cursor-pointer mt-4"
+      >
+        Apply Milestones
+      </button>
     </div>
   );
 }

@@ -73,4 +73,24 @@ describe("EscrowTab Component Layout & Action Tests", () => {
     expect(fileContent).toContain("escrowView === \"create\" && (");
     expect(fileContent).toContain("escrowView === \"active\" && (");
   });
+
+  it("should support BottomSheet integration for Milestones configuration", () => {
+    const filePath = path.resolve(__dirname, "./EscrowTab.tsx");
+    const fileContent = fs.readFileSync(filePath, "utf-8");
+
+    // Import and state for BottomSheet
+    expect(fileContent).toContain("import BottomSheet from \"./ui/BottomSheet\";");
+    expect(fileContent).toContain("const [isMilestoneSheetOpen, setIsMilestoneSheetOpen] = useState(false);");
+
+    // Click trigger and display text
+    expect(fileContent).toContain("data-testid=\"configure-milestones-btn\"");
+    expect(fileContent).toContain("onClick={() => setIsMilestoneSheetOpen(true)}");
+    expect(fileContent).toContain("Add Milestones (0 defined)");
+
+    // BottomSheet declaration wrapping MilestoneBuilder
+    expect(fileContent).toContain("<BottomSheet");
+    expect(fileContent).toContain("isOpen={isMilestoneSheetOpen}");
+    expect(fileContent).toContain("onClose={() => setIsMilestoneSheetOpen(false)}");
+    expect(fileContent).toContain("<MilestoneBuilder");
+  });
 });

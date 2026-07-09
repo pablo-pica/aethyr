@@ -8,6 +8,7 @@ import SegmentedControl, { SegmentedOption } from "./ui/SegmentedControl";
 import { InlineConfirmationButton } from "./ui/ConfirmationDialog";
 import MilestoneBuilder, { Milestone } from "./MilestoneBuilder";
 import { validateStellarAddress } from "@/lib/utils";
+import BottomSheet from "./ui/BottomSheet";
 
 interface TransactionItem {
   id: string;
@@ -68,6 +69,7 @@ export default function EscrowTab({
   const [amount, setAmount] = useState("");
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [createLoading, setCreateLoading] = useState(false);
+  const [isMilestoneSheetOpen, setIsMilestoneSheetOpen] = useState(false);
 
   const escrows = transactions.filter((tx) => tx.type === "escrow");
   const [escrowView, setEscrowView] = useState<"create" | "active">(
@@ -184,9 +186,35 @@ export default function EscrowTab({
                   />
                 </div>
 
-                <div className="pt-2">
-                  <MilestoneBuilder milestones={milestones} onChange={setMilestones} />
-                </div>
+                {(() => {
+                  const totalBps = milestones.reduce((sum, m) => sum + m.payout_weight, 0);
+                  const totalPercent = (totalBps / 100).toFixed(0);
+                  const isValid = totalBps === 10000;
+                  return (
+                    <div className="pt-2 space-y-1.5">
+                      <label className="text-xs font-bold text-slate-300">Milestone Configuration</label>
+                      <button
+                        type="button"
+                        onClick={() => setIsMilestoneSheetOpen(true)}
+                        className={`w-full h-12 rounded-xl border flex items-center justify-between px-4 transition-all active:scale-[0.99] cursor-pointer outline-none focus-ring ${
+                          milestones.length === 0
+                            ? "border-slate-800 bg-slate-900/50 text-slate-400 hover:bg-slate-900/80 hover:border-slate-700"
+                            : !isValid
+                            ? "border-amber-500/20 bg-amber-500/5 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/30"
+                            : "border-teal-500/30 bg-teal-500/5 text-teal-400 hover:bg-teal-500/10 hover:border-teal-500/40"
+                        }`}
+                        data-testid="configure-milestones-btn"
+                      >
+                        <span className="text-sm font-medium">
+                          {milestones.length === 0
+                            ? "Add Milestones (0 defined)"
+                            : `Milestones: ${milestones.length} defined (${totalPercent}%)`}
+                        </span>
+                        <ChevronDown className="w-4 h-4 opacity-60" />
+                      </button>
+                    </div>
+                  );
+                })()}
 
                 <button
                   type="submit"
@@ -479,6 +507,18 @@ export default function EscrowTab({
           </button>
         </div>
       )}
+
+      <BottomSheet
+        isOpen={isMilestoneSheetOpen}
+        onClose={() => setIsMilestoneSheetOpen(false)}
+        title="Configure Milestones"
+      >
+        <MilestoneBuilder
+          milestones={milestones}
+          onChange={setMilestones}
+          onClose={() => setIsMilestoneSheetOpen(false)}
+        />
+      </BottomSheet>
     </div>
   );
 }

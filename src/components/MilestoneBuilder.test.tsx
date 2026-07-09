@@ -13,9 +13,8 @@ describe("MilestoneBuilder Component Tests", () => {
     const filePath = path.resolve(__dirname, "./MilestoneBuilder.tsx");
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
-    // The component must contain visual elements like Auto-Balance, Milestone Editor, Split Evenly
+    // The component must contain visual elements like Milestone Editor, Split Evenly
     expect(fileContent).toContain("Milestone Editor");
-    expect(fileContent).toContain("Auto-Balance");
     expect(fileContent).toContain("Split Evenly");
     expect(fileContent).toContain("Add Milestone");
     expect(fileContent).toContain("totalBps === 10000");
@@ -28,39 +27,33 @@ describe("MilestoneBuilder Component Tests", () => {
     // Compact single row container checks
     expect(fileContent).toContain("flex gap-2 items-center py-2 border-b border-space-800/80 last:border-b-0");
     
-    // Description input styling
-    expect(fileContent).toContain("flex-1 min-w-0 h-10 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl px-3 text-xs");
+    // Description input styling (h-12 and text-sm)
+    expect(fileContent).toContain("flex-1 min-w-0 h-12 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl px-3 text-sm");
 
     // Weight input width and styling
     expect(fileContent).toContain("flex items-center gap-1.5 shrink-0");
-    expect(fileContent).toContain("w-[116px]");
+    expect(fileContent).toContain("w-[136px]");
     expect(fileContent).toContain("<CustomNumberInput");
     expect(fileContent).toContain("text-xs text-slate-500 font-mono select-none");
-    expect(fileContent).toContain("compact={true}");
+    expect(fileContent).toContain("size=\"lg\"");
 
     // Remove button small trash icon
     expect(fileContent).toContain("p-2 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400");
     expect(fileContent).toContain("Trash2 className=\"w-4 h-4\"");
   });
 
-  it("should have Auto-Balance toggle state and logic", () => {
+  it("should have manual Split Evenly logic and onClose apply button", () => {
     const filePath = path.resolve(__dirname, "./MilestoneBuilder.tsx");
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
-    // Toggle state and helper
-    expect(fileContent).toContain("const [autoBalance, setAutoBalance] = React.useState(false);");
+    // manual Split Evenly balanceMilestones helper
     expect(fileContent).toContain("const balanceMilestones = (list: Milestone[]): Milestone[] => {");
-    expect(fileContent).toContain("onChange(balanceMilestones(updated));");
+    expect(fileContent).toContain("handleAutoBalance");
 
-    // Checkbox input toggle element and peer-checked animations
-    expect(fileContent).toContain("type=\"checkbox\"");
-    expect(fileContent).toContain("checked={autoBalance}");
-    expect(fileContent).toContain("onChange={(e) => handleToggleAutoBalance(e.target.checked)}");
-    expect(fileContent).toContain("peer-checked:bg-teal-500/20");
-    expect(fileContent).toContain("peer-checked:translate-x-3");
-
-    // Disable manual weight input when Auto-Balance is enabled
-    expect(fileContent).toContain("disabled={autoBalance}");
+    // onClose prop definition and Apply Milestones CTA button call
+    expect(fileContent).toContain("onClose?: () => void;");
+    expect(fileContent).toContain("onClick={() => onClose?.()}");
+    expect(fileContent).toContain("Apply Milestones");
   });
 
   it("should have clean and compact scroll container style", () => {
