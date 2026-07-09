@@ -80,7 +80,7 @@ graph TD
     AI -->|Structured Params| UI
     Pathfinder -->|Best Route resolved| UI
     UI -->|Signs Tx| Wallet[StellarWalletsKit / Freighter]
-    Wallet -->|Submits Signed XDR| Relayer[/api/sponsor Gasless Relayer]
+    Wallet -->|Submits Signed XDR| Relayer["/api/sponsor Gasless Relayer"]
     Relayer -->|Fee-Bump + Submit| RPC[Soroban Testnet RPC]
     Relayer -.->|Fallback: Direct Submit| RPC
     RPC -->|Executes| RouterContract[Aethyr Router Contract]
