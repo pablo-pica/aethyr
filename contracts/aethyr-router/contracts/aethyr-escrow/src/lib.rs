@@ -30,7 +30,7 @@ pub enum DataKey {
     Validator,
 }
 
-pub const LOCK_PERIOD_SECONDS: u64 = 7 * 24 * 60 * 60; // 7 days lock period
+pub const LOCK_PERIOD_SECONDS: u64 = 30 * 24 * 60 * 60; // 30 days lock period
 pub const AUTO_RELEASE_PERIOD_SECONDS: u64 = 7 * 24 * 60 * 60; // 7 days auto-release period
 
 pub trait AethyrEscrowTrait {

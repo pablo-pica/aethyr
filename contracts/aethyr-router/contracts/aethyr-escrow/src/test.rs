@@ -118,10 +118,10 @@ fn test_refund_flow_success() {
 
     let escrow_id = client.create_escrow(&sender, &receiver, &token_addr, &10000, &milestones);
 
-    // Advance time beyond lock period (7 days = 604,800 seconds)
-    // 100000 + 604800 = 704800
+    // Advance time beyond lock period (30 days = 2,592,000 seconds)
+    // 100000 + 2592000 = 2692000
     env.ledger().with_mut(|li| {
-        li.timestamp = 704801;
+        li.timestamp = 2692001;
     });
 
     // Refund now should succeed

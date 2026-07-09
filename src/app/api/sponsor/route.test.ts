@@ -23,11 +23,27 @@ vi.mock("@stellar/stellar-sdk", async () => {
 
   class MockTransaction {
     fee = "100";
-    operations = [{ type: "payment" }];
+    operations = [{ 
+      type: "invokeHostFunction",
+      func: {
+        switch: () => ({ value: 0 }), // hostFunctionTypeInvokeContract
+        invokeContract: () => ({
+          contractAddress: () => "mock-contract-address",
+        }),
+      }
+    }];
   }
+
+  const mockFromScAddress = vi.fn().mockReturnValue({
+    toString: () => "CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO",
+  });
 
   return {
     ...actual,
+    Address: {
+      ...actual.Address,
+      fromScAddress: mockFromScAddress,
+    },
     Transaction: MockTransaction,
     TransactionBuilder: {
       ...actual.TransactionBuilder,
