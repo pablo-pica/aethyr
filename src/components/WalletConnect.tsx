@@ -24,19 +24,29 @@ export default function WalletConnect({
     setMounted(true);
   }, []);
 
+  const getIdenticonGradient = (addr: string | null) => {
+    if (!addr) return "radial-gradient(circle, #6366f1, #06b6d4)";
+    let hash = 0;
+    for (let i = 0; i < addr.length; i++) {
+      hash = addr.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const c1 = `hsl(${Math.abs(hash) % 360}, 70%, 55%)`;
+    const c2 = `hsl(${Math.abs(hash + 80) % 360}, 75%, 45%)`;
+    return `radial-gradient(circle at 30% 30%, ${c1}, ${c2})`;
+  };
+
   const truncateAddress = (addr: string) => {
     if (!addr) return "";
     return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
   };
 
-  // Render a loading state during server-side rendering and initial client hydration
   if (!mounted || isLoading) {
     return (
       <button
         disabled={true}
         className="h-10 px-4 rounded-xl bg-space-800 border border-space-700/50 flex items-center gap-2 text-slate-400 text-xs font-semibold"
       >
-        <Loader2 className="w-4 h-4 animate-spin text-primary-indigo" />
+        <Loader2 className="w-4 h-4 animate-spin text-primary-cyan" />
         Checking...
       </button>
     );
@@ -46,10 +56,16 @@ export default function WalletConnect({
     return (
       <button
         onClick={openDrawer}
-        className="h-10 px-3.5 rounded-xl bg-primary-indigo/10 hover:bg-primary-indigo/20 border border-primary-indigo/35 hover:border-primary-indigo/50 flex items-center gap-2 text-slate-200 text-xs font-semibold font-mono tracking-wide hover:shadow-lg hover:shadow-primary-indigo/5 active:scale-[0.98] transition-all"
+        type="button"
+        className="h-10 px-3 rounded-xl bg-space-800/80 hover:bg-space-700/40 border border-teal-500/15 flex items-center gap-2 text-slate-200 text-xs font-semibold font-mono tracking-wide hover:shadow-lg active:scale-[0.98] transition-all cursor-pointer focus-ring"
+        data-testid="wallet-connected-pill"
       >
-        <Wallet className="w-3.5 h-3.5 text-primary-indigo animate-pulse-glow" />
-        {truncateAddress(address)}
+        <div
+          className="w-4 h-4 rounded-full border border-teal-500/20 shrink-0"
+          style={{ background: getIdenticonGradient(address) }}
+          data-testid="wallet-identicon"
+        />
+        <span>{truncateAddress(address)}</span>
       </button>
     );
   }
@@ -57,9 +73,11 @@ export default function WalletConnect({
   return (
     <button
       onClick={connect}
-      className="h-10 px-4 rounded-xl neon-button flex items-center gap-2 text-white text-xs font-semibold active:scale-[0.98] transition-all"
+      type="button"
+      className="h-10 px-4 rounded-xl bg-gradient-to-r from-primary-cyan to-primary-indigo hover:shadow-lg hover:shadow-primary-cyan/15 flex items-center gap-2 text-white text-xs font-bold active:scale-[0.98] transition-all cursor-pointer focus-ring"
+      data-testid="wallet-connect-btn"
     >
-      <Wallet className="w-4 h-4" />
+      <Wallet className="w-4 h-4 text-white" />
       Connect Wallet
     </button>
   );

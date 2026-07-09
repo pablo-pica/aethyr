@@ -131,11 +131,19 @@ export function useStellarWallet() {
   }, [fetchBalance]);
 
   // Connect wallet
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (walletId?: string) => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
       getKit();
-      const { address } = await StellarWalletsKit.authModal();
+      let address = "";
+      if (walletId) {
+        await StellarWalletsKit.setWallet(walletId);
+        const res = await StellarWalletsKit.getAddress();
+        address = res.address;
+      } else {
+        const res = await StellarWalletsKit.authModal();
+        address = res.address;
+      }
       if (!address) {
         throw new Error("No address returned from StellarWalletsKit.");
       }
