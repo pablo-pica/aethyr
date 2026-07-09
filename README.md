@@ -173,29 +173,120 @@ aethyr/
 
 ---
 
-## 📱 Mobile App Viewports
+## 🏅 Belt Submission Evidence
 
-Aethyr is designed to feel like a native mobile application. The interface scales to a true full-bleed layout on mobile devices, and displays inside a mock phone shell on desktop monitors.
+Each belt section below maps **1:1** against the [Belt Requirements](./docs/BELT-REQUIREMENTS.md) checklist. Every requirement links directly to its proof — source file, Stellar Explorer transaction, or screenshot.
 
-| Wallet Connection | Wallet Details | Route Optimization | Transaction Receipt |
-|:---:|:---:|:---:|:---:|
-| <img src="./docs/assets/screen1.png" width="200" alt="Connect"> | <img src="./docs/assets/screen2.png" width="200" alt="AI Assist"> | <img src="./docs/assets/screen3.png" width="200" alt="Routing"> | <img src="./docs/assets/screen4.png" width="200" alt="Receipt"> |
+---
 
-### 🟡 Yellow Belt Viewports (Multi-wallet & Smart Contract Call)
+### ⚪ White Belt — Foundational PWA Container
 
-| Multi-Wallet Selector | Soroban Contract Transaction Status |
-|:---:|:---:|
-| <img src="./docs/assets/screen5.png" width="220" alt="Multi-wallet Modal Selector"> | <img src="./docs/assets/screen6.png" width="220" alt="Soroban Routed Tx Status"> |
+<details>
+<summary><strong>✅ All Requirements Met — Click to expand</strong></summary>
 
-### 🟠 Orange Belt Viewports & Verification
+#### Core Tasks
 
-| Mobile Viewport Layout | GitHub Actions CI/CD Pipeline | Test Suite Output |
-|:---:|:---:|:---:|
-| <img src="./docs/assets/screen1.png" width="200" alt="Mobile Viewport"> | *[Pending: GitHub Actions CI Dashboard Screenshot]* | *[Pending: Terminal Test Suite Run Screenshot]* |
+| # | Requirement | Status | Evidence |
+|:-:|:-----------|:------:|:---------|
+| 1 | Connect a wallet via Freighter | ✅ | [`useFreighter.ts`](./src/hooks/useFreighter.ts) — `connect()` calls `requestAccess()` |
+| 2 | Display connected wallet XLM balance | ✅ | [`useStellarWallet.ts`](./src/hooks/useStellarWallet.ts) — `fetchBalance()` queries Horizon |
+| 3 | Wallet disconnect functionality | ✅ | [`useStellarWallet.ts`](./src/hooks/useStellarWallet.ts) — `disconnect()` resets state |
+| 4 | Send a transaction on Stellar Testnet | ✅ | [`useStellarWallet.ts`](./src/hooks/useStellarWallet.ts) — `sendPayment()` builds and submits native XLM transfers |
+| 5 | Display transaction feedback (success/failure) | ✅ | [`page.tsx`](./src/app/page.tsx) — toast notifications on tx result |
+| 6 | Show transaction hash on completion | ✅ | [`page.tsx`](./src/app/page.tsx) — Activity ledger displays tx hash with explorer link |
 
-* **Verified Escrow Contract Address**: `CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO`
-* **Advanced Contract Call Tx Hash**: `cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623`
-* **dApp Walkthrough Demo Video**: `[Pending Walkthrough Video Link]`
+#### Submission Assets
+
+| Asset | Screenshot |
+|:------|:----------:|
+| **Wallet connected** — public key/address visible | <img src="./docs/assets/screen1.png" width="220" alt="Wallet Connected"> |
+| **XLM balance** displayed in UI | <img src="./docs/assets/screen2.png" width="220" alt="XLM Balance"> |
+| **Successful testnet transaction** being executed | <img src="./docs/assets/screen3.png" width="220" alt="Transaction Executing"> |
+| **Transaction result** — hash/confirmation shown | <img src="./docs/assets/screen4.png" width="220" alt="Transaction Hash Result"> |
+
+</details>
+
+---
+
+### 🟡 Yellow Belt — Soroban Smart Contracts
+
+<details>
+<summary><strong>✅ All Requirements Met — Click to expand</strong></summary>
+
+#### Core Tasks
+
+| # | Requirement | Status | Evidence |
+|:-:|:-----------|:------:|:---------|
+| 1 | Error handling for 3+ transaction error types | ✅ | [`useStellarWallet.ts`](./src/hooks/useStellarWallet.ts) — handles: **Wallet not found**, **User rejected**, **Insufficient balance** |
+| 2 | Deploy a Soroban smart contract to Testnet | ✅ | Router contract: [`CDXZR77...ZERO`](https://stellar.expert/explorer/testnet/contract/CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO) |
+| 3 | Call a contract function from the frontend | ✅ | [`useStellarWallet.ts`](./src/hooks/useStellarWallet.ts) — `routeToEscrow()`, `releaseMilestone()`, etc. invoke Soroban |
+| 4 | Multi-wallet integration (StellarWalletsKit) | ✅ | [`useStellarWallet.ts`](./src/hooks/useStellarWallet.ts) — initializes `StellarWalletsKit` with `defaultModules()` (Freighter, Albedo, xBull) |
+| 5 | Display contract tx status (pending/success/fail) | ✅ | [`page.tsx`](./src/app/page.tsx) — status badges + toast notifications for all contract operations |
+
+#### On-Chain Proof
+
+| Artifact | Value |
+|:---------|:------|
+| **Deployed Contract Address** | [`CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO`](https://stellar.expert/explorer/testnet/contract/CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO) |
+| **Deployment Tx Hash** | [`ed188ca785a3c1...`](https://stellar.expert/explorer/testnet/tx/ed188ca785a3c129d2c450c387a094f44657ec63cad4be87e4a035a9646f4103) |
+| **Frontend Invocation Tx Hash** | [`cf417f87e58e3a...`](https://stellar.expert/explorer/testnet/tx/cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623) |
+| **Commit Count** | 65+ conventional commits ([`git log`](https://github.com/pablo-pica/aethyr/commits/dev-branch)) |
+
+#### Submission Assets
+
+| Asset | Screenshot |
+|:------|:----------:|
+| **Multi-wallet modal** — Freighter, Albedo, xBull visible | <img src="./docs/assets/screen5.png" width="240" alt="Multi-wallet Modal"> |
+| **Contract call status** — pending/success/fail feedback | <img src="./docs/assets/screen6.png" width="240" alt="Contract Tx Status"> |
+
+</details>
+
+---
+
+### 🟠 Orange Belt — Advanced Contracts, CI/CD & Production Architecture
+
+<details open>
+<summary><strong>🔧 In Progress — Click to expand</strong></summary>
+
+#### Core Tasks
+
+| # | Requirement | Status | Evidence |
+|:-:|:-----------|:------:|:---------|
+| 1a | **Inter-contract communication** | ✅ | Router calls Escrow via `route_to_escrow()` → [`lib.rs (Router)`](./contracts/aethyr-router/contracts/aethyr-router/src/lib.rs) invokes [`lib.rs (Escrow)`](./contracts/aethyr-router/contracts/aethyr-escrow/src/lib.rs) |
+| 1b | **Event streaming** from contracts | ✅ | Both contracts emit events via `env.events().publish(...)` — see [`lib.rs (Escrow) L179, L262, L306, L347, L388, L462`](./contracts/aethyr-router/contracts/aethyr-escrow/src/lib.rs) |
+| 2 | **CI/CD pipeline** (lint + test + build) | ✅ | GitHub Actions: [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — runs `npm run lint`, `npm run test`, `npm run build`, and `cargo test` on every push/PR |
+| 3 | **Mobile-responsive PWA** with safe-area notch | ✅ | [`globals.css`](./src/styles/globals.css) — `env(safe-area-inset-*)` + [`page.tsx`](./src/app/page.tsx) — max-width 420px phone shell |
+| 4 | **Error handling & state indicators** | ✅ | Loading spinners, skeleton UI, toast notifications throughout [`page.tsx`](./src/app/page.tsx) and [`WalletConnect.tsx`](./src/components/WalletConnect.tsx) |
+| 5a | **Smart contract tests** (Rust) | ✅ | **11 tests passing**: 7 in [`test.rs (Escrow)`](./contracts/aethyr-router/contracts/aethyr-escrow/src/test.rs) + 4 in [`test.rs (Router)`](./contracts/aethyr-router/contracts/aethyr-router/src/test.rs) |
+| 5b | **Frontend tests** (Vitest) | ✅ | **24 tests passing** across 6 files: [`page.test.tsx`](./src/app/page.test.tsx), [`aiParser.test.ts`](./src/lib/aiParser.test.ts), [`utils.test.ts`](./src/lib/utils.test.ts), [`route.test.ts`](./src/app/api/sponsor/route.test.ts), [`MilestoneBuilder.test.tsx`](./src/components/MilestoneBuilder.test.tsx), [`ProfileDrawer.test.tsx`](./src/components/ProfileDrawer.test.tsx) |
+| 6 | **Production-ready architecture** | ✅ | Gasless relayer with contract whitelisting, rate limiting, 30-day refund lock, dust-truncation fix — see [Security Model](#-security-model) |
+
+#### Codebase Requirements
+
+| Requirement | Status | Evidence |
+|:-----------|:------:|:---------|
+| Public GitHub repository | ✅ | [github.com/pablo-pica/aethyr](https://github.com/pablo-pica/aethyr) |
+| 10+ meaningful commits | ✅ | **65+ conventional commits** — `feat:`, `fix:`, `test:`, `docs:`, `ci:` |
+| Live demo on Vercel/Netlify | ✅ | [aethyr-pica.vercel.app](https://aethyr-pica.vercel.app/) |
+| No hardcoded secrets | ✅ | All secrets via `.env.local` + [pre-commit hook](./scripts/pre-commit.sh) scanning for Stellar seeds |
+
+#### On-Chain Proof
+
+| Artifact | Value |
+|:---------|:------|
+| **Verified Escrow Contract** | [`CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO`](https://stellar.expert/explorer/testnet/contract/CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO) |
+| **Inter-Contract Call Tx Hash** | [`cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623`](https://stellar.expert/explorer/testnet/tx/cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623) |
+
+#### Submission Assets
+
+| Asset | Screenshot |
+|:------|:----------:|
+| **Mobile viewport** — responsive UI on small screen | <img src="./docs/assets/screen1.png" width="220" alt="Mobile Viewport"> |
+| **GitHub Actions CI/CD** — green/passing pipeline | *📸 [Pending: push to GitHub, then screenshot the Actions tab]* |
+| **Test suite output** — 11 Rust + 24 Vitest passing | *📸 [Pending: screenshot terminal after running `cargo test` + `npm test`]* |
+| **Video walkthrough** (1-2 min) | *🎥 [Pending: record and upload to Loom/YouTube]* |
+
+</details>
 
 ---
 
@@ -257,56 +348,26 @@ npm run lint
 
 ## 🗺️ Product Roadmap
 
-Aethyr's growth roadmap charts our progress from white belt setup to high-throughput auto routing.
-
 ```mermaid
 gantt
     title Aethyr Development Roadmap
     dateFormat  YYYY-MM-DD
     section Completed
     White Belt :done, 2026-07-01, 2026-07-07
-    Yellow Belt (Soroban Contracts) :done, 2026-07-08, 2026-07-09
-    Orange Belt (Escrow + Security) :active, 2026-07-09, 2026-07-15
+    Yellow Belt :done, 2026-07-08, 2026-07-09
+    Orange Belt :active, 2026-07-09, 2026-07-15
     section Planned
     Green Belt (SEP Standards) :2026-07-16, 2026-07-30
     Blue Belt (DEX Auto Routing) :2026-08-01, 2026-08-15
 ```
 
-### ⚪ White Belt: Foundational PWA Container (Completed ✅)
-* Freighter wallet connection hook integration.
-* Native Testnet XLM balance queries and transfer transaction builders.
-* Glassmorphic Profile Drawer side container with full responsive mockup.
-* 20/20 Vitest test suite with active pre-commit security scans.
-
-### 🟡 Yellow Belt: Soroban Contracts (Completed ✅)
-* Deployed `aethyr-router` contract to Stellar Testnet:
-  * **Contract Address**: [`CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO`](https://stellar.expert/explorer/testnet/contract/CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO)
-  * **Deployment Tx Hash**: [`ed188ca...`](https://stellar.expert/explorer/testnet/tx/ed188ca785a3c129d2c450c387a094f44657ec63cad4be87e4a035a9646f4103)
-  * **Frontend Invocation Tx Hash**: `cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623`
-* Integrated StellarWalletsKit selector modal (Albedo, xBull, Freighter).
-* Mapped contract call states (pending, success, failure) with comprehensive UI toasts.
-* Error handling for 3 key transaction failures.
-
-### 🟠 Orange Belt: Escrow & Multi-wallet Integration (In Progress 🔧)
-* **Aethyr Escrow contract** with inter-contract calling (Router → Escrow).
-* Freelancer milestone submission, client disputes, and 7-day auto-release timer.
-* Gasless fee-bump relayer (`/api/sponsor`) with contract whitelisting and rate limiting.
-* 30-day refund lock period and dust-truncation protection.
-* AI-powered intent parsing bar (Gemini API).
-* Visual Milestone Builder card editor.
-* GitHub Actions CI/CD pipeline.
-* **65 conventional commits** across dev-branch.
-* **11 Rust tests + 24 Vitest tests** all passing.
-
-### 🟢 Green Belt: SEP Standards
-* Integrate **SEP-24** interactive deposit/withdrawal anchors for fiat cash-ins.
-* Support **SEP-38** exchange rate quotes to compare DEX prices with anchor rates.
-* Launch developer staging environments and onboard 10 testnet users.
-
-### 🔵 Blue Belt: DEX Auto Routing Engine
-* Implement localized Dijkstra/Bellman-Ford path calculations querying both Classic DEX and Soroban AMMs.
-* Resolve multi-hop token paths (up to 3 hops) to maximize receiver outputs.
-* Build simulation wrappers to protect users from high slippage.
+| Belt | Focus | Status |
+|:-----|:------|:------:|
+| ⚪ White | Wallet connect, XLM transfers, PWA layout | ✅ Complete |
+| 🟡 Yellow | Soroban contracts, multi-wallet, error handling | ✅ Complete |
+| 🟠 Orange | Inter-contract calls, CI/CD, tests, gasless relayer | 🔧 In Progress |
+| 🟢 Green | SEP-24/38 anchor integration, fiat on-ramps | 📋 Planned |
+| 🔵 Blue | DEX pathfinding engine, multi-hop routing | 📋 Planned |
 
 ---
 
