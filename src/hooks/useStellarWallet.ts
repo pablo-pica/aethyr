@@ -523,7 +523,7 @@ export function useStellarWallet() {
       const account = await horizonServer.loadAccount(currentAddress);
       const fee = await horizonServer.fetchBaseFee();
 
-      const escrowIdScVal = xdr.ScVal.scvBytes(hexToUint8Array(escrowId));
+      const escrowIdScVal = xdr.ScVal.scvBytes(Buffer.from(hexToUint8Array(escrowId)));
       const milestoneIndexScVal = xdr.ScVal.scvU32(milestoneIndex);
       const authPartyScVal = nativeToScVal(new Address(currentAddress));
 
@@ -608,7 +608,7 @@ export function useStellarWallet() {
       const account = await horizonServer.loadAccount(currentAddress);
       const fee = await horizonServer.fetchBaseFee();
 
-      const escrowIdScVal = xdr.ScVal.scvBytes(hexToUint8Array(escrowId));
+      const escrowIdScVal = xdr.ScVal.scvBytes(Buffer.from(hexToUint8Array(escrowId)));
       const senderScVal = nativeToScVal(new Address(currentAddress));
 
       const contract = new Contract(escrowContract);
