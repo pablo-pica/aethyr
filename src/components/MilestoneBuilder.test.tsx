@@ -32,13 +32,13 @@ describe("MilestoneBuilder Component Tests", () => {
 
     // Weight input width and styling
     expect(fileContent).toContain("flex items-center gap-1.5 shrink-0");
-    expect(fileContent).toContain("w-[136px]");
+    expect(fileContent).toContain("w-[116px]");
     expect(fileContent).toContain("<CustomNumberInput");
     expect(fileContent).toContain("text-xs text-slate-500 font-mono select-none");
     expect(fileContent).toContain("size=\"lg\"");
 
-    // Remove button small trash icon
-    expect(fileContent).toContain("p-2 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400");
+    // Remove button small trash icon (red styled)
+    expect(fileContent).toContain("p-2 rounded-lg hover:bg-red-500/10 text-red-500 hover:text-red-400");
     expect(fileContent).toContain("Trash2 className=\"w-4 h-4\"");
   });
 
@@ -62,5 +62,24 @@ describe("MilestoneBuilder Component Tests", () => {
 
     // Clean scrollbar settings
     expect(fileContent).toContain("space-y-2 max-h-[220px] overflow-y-auto pr-1");
+  });
+
+  it("should verify the SlidersHorizontal toggle behavior and drawer container layout", () => {
+    const filePath = path.resolve(__dirname, "./MilestoneBuilder.tsx");
+    const fileContent = fs.readFileSync(filePath, "utf-8");
+
+    // Verify local drawer open state hook exists in MilestoneRow
+    expect(fileContent).toContain("const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);");
+
+    // Verify SlidersHorizontal toggle button and hover styling exists
+    expect(fileContent).toContain("<SlidersHorizontal");
+    expect(fileContent).toContain("onClick={() => setIsDrawerOpen(!isDrawerOpen)}");
+    expect(fileContent).toContain("hover:text-teal-400 cursor-pointer transition-colors");
+
+    // Verify animated motion.div drawer panel container exists
+    expect(fileContent).toContain("motion.div");
+    expect(fileContent).toContain("width: isDrawerOpen ? \"auto\" : 0");
+    expect(fileContent).toContain("opacity: isDrawerOpen ? 1 : 0");
+    expect(fileContent).toContain("overflow: isDrawerOpen ? \"visible\" : \"hidden\"");
   });
 });

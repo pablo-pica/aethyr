@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Plus, Trash2, Scale, AlertTriangle, CheckCircle } from "lucide-react";
+import { Plus, Trash2, Scale, AlertTriangle, CheckCircle, SlidersHorizontal } from "lucide-react";
+import { motion } from "framer-motion";
 import CustomNumberInput from "./ui/CustomNumberInput";
 
 export interface Milestone {
@@ -16,9 +17,97 @@ interface MilestoneBuilderProps {
   milestones: Milestone[];
   onChange: (milestones: Milestone[]) => void;
   onClose?: () => void;
+  autoBalance?: boolean;
 }
 
-export default function MilestoneBuilder({ milestones, onChange, onClose }: MilestoneBuilderProps) {
+interface MilestoneRowProps {
+  index: number;
+  milestone: Milestone;
+  autoBalance: boolean;
+  onUpdateDescription: (desc: string) => void;
+  onUpdateWeight: (percentVal: string) => void;
+  onRemove: () => void;
+}
+
+function MilestoneRow({
+  index,
+  milestone,
+  autoBalance,
+  onUpdateDescription,
+  onUpdateWeight,
+  onRemove,
+}: MilestoneRowProps) {
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+
+  return (
+    <div className="flex gap-2 items-center py-2 border-b border-space-800/80 last:border-b-0">
+      {/* Index number */}
+      <span className="text-xs font-mono text-slate-500 w-5 text-right shrink-0">{index}.</span>
+
+      {/* Description input */}
+      <input
+        type="text"
+        value={milestone.description}
+        onChange={(e) => onUpdateDescription(e.target.value)}
+        placeholder="Milestone description"
+        className="flex-1 min-w-0 h-12 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl px-3 text-sm text-slate-200 outline-none transition-all focus-ring"
+      />
+
+      {/* Toggle button */}
+      <button
+        type="button"
+        onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+        className="p-2 text-slate-500 hover:text-teal-400 cursor-pointer transition-colors shrink-0"
+        title="Toggle weight and delete panel"
+      >
+        <SlidersHorizontal className="w-4 h-4" />
+      </button>
+
+      {/* Drawer panel: animated container */}
+      <motion.div
+        initial={false}
+        animate={{
+          width: isDrawerOpen ? "auto" : 0,
+          opacity: isDrawerOpen ? 1 : 0,
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        style={{ overflow: isDrawerOpen ? "visible" : "hidden" }}
+        className="flex items-center gap-1.5 shrink-0"
+      >
+        <div className="flex items-center gap-1.5 shrink-0 pl-1">
+          <div className="w-[116px]">
+            <CustomNumberInput
+              value={Number((milestone.payout_weight / 100).toFixed(2)).toString()}
+              onChange={onUpdateWeight}
+              min={0}
+              max={100}
+              step={1}
+              size="lg"
+              disabled={autoBalance}
+            />
+          </div>
+          <span className="text-xs text-slate-500 font-mono select-none">%</span>
+
+          {/* Remove button */}
+          <button
+            type="button"
+            onClick={onRemove}
+            className="p-2 rounded-lg hover:bg-red-500/10 text-red-500 hover:text-red-400 active:scale-90 transition-all cursor-pointer focus-ring shrink-0"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+export default function MilestoneBuilder({
+  milestones,
+  onChange,
+  onClose,
+  autoBalance = false,
+}: MilestoneBuilderProps) {
   const totalBps = milestones.reduce((sum, m) => sum + m.payout_weight, 0);
   const totalPercent = (totalBps / 100).toFixed(2);
   const isValid = totalBps === 10000;
@@ -125,43 +214,15 @@ export default function MilestoneBuilder({ milestones, onChange, onClose }: Mile
           <p className="text-xs text-slate-500 text-center py-4">No milestones defined. Add one below.</p>
         ) : (
           milestones.map((m, idx) => (
-            <div key={idx} className="flex gap-2 items-center py-2 border-b border-space-800/80 last:border-b-0">
-              {/* Index number */}
-              <span className="text-xs font-mono text-slate-500 w-5 text-right shrink-0">{idx + 1}.</span>
-
-              {/* Description input */}
-              <input
-                type="text"
-                value={m.description}
-                onChange={(e) => handleUpdateDescription(idx, e.target.value)}
-                placeholder="Milestone description"
-                className="flex-1 min-w-0 h-12 bg-slate-900 border border-slate-800 focus:border-teal-500/35 rounded-xl px-3 text-sm text-slate-200 outline-none transition-all focus-ring"
-              />
-
-              {/* Weight input container */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                <div className="w-[136px]">
-                  <CustomNumberInput
-                    value={Number((m.payout_weight / 100).toFixed(2)).toString()}
-                    onChange={(val) => handleUpdateWeight(idx, val)}
-                    min={0}
-                    max={100}
-                    step={1}
-                    size="lg"
-                  />
-                </div>
-                <span className="text-xs text-slate-500 font-mono select-none">%</span>
-              </div>
-
-              {/* Remove button */}
-              <button
-                type="button"
-                onClick={() => handleRemoveMilestone(idx)}
-                className="p-2 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400 active:scale-90 transition-all cursor-pointer focus-ring shrink-0"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+            <MilestoneRow
+              key={idx}
+              index={idx + 1}
+              milestone={m}
+              autoBalance={autoBalance}
+              onUpdateDescription={(desc) => handleUpdateDescription(idx, desc)}
+              onUpdateWeight={(val) => handleUpdateWeight(idx, val)}
+              onRemove={() => handleRemoveMilestone(idx)}
+            />
           ))
         )}
       </div>
