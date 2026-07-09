@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Clock, ReceiptText, ExternalLink, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { Clock, ReceiptText, ExternalLink, ArrowRight, CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Milestone {
   description: string;
@@ -136,21 +136,28 @@ export default function ActivityTab({ transactions }: ActivityTabProps) {
                       <p className="text-xs font-bold text-slate-200">{tx.description}</p>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <div className="flex items-baseline justify-end gap-0.5">
-                        <span className="text-xs font-bold text-slate-200">
-                          {tx.amountIn}
-                        </span>
-                        <span className="text-[9px] font-mono text-slate-400">{tx.assetIn}</span>
-                      </div>
-                      {tx.amountOut && tx.assetOut && (
-                        <div className="flex items-baseline justify-end gap-0.5 mt-0.5">
-                          <span className="text-[9px] font-bold text-emerald-400">
-                            → {tx.amountOut}
+                    <div className="text-right shrink-0 flex items-center gap-3">
+                      <div>
+                        <div className="flex items-baseline justify-end gap-0.5">
+                          <span className="text-xs font-bold text-slate-200">
+                            {tx.amountIn}
                           </span>
-                          <span className="text-[8px] font-mono text-slate-500">{tx.assetOut}</span>
+                          <span className="text-[9px] font-mono text-slate-400">{tx.assetIn}</span>
                         </div>
-                      )}
+                        {tx.amountOut && tx.assetOut && (
+                          <div className="flex items-baseline justify-end gap-0.5 mt-0.5">
+                            <span className="text-[9px] font-bold text-emerald-400">
+                              → {tx.amountOut}
+                            </span>
+                            <span className="text-[8px] font-mono text-slate-500">{tx.assetOut}</span>
+                          </div>
+                        )}
+                      </div>
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 transition-transform duration-250 shrink-0 ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                      />
                     </div>
                   </div>
 
@@ -166,51 +173,55 @@ export default function ActivityTab({ transactions }: ActivityTabProps) {
                   )}
 
                   {/* Expand details view */}
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      className="mt-3 pt-3 border-t border-space-700/20 space-y-2.5 text-[10px] font-mono text-slate-300"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {tx.senderAddress && (
-                        <div className="flex justify-between items-center gap-2">
-                          <span className="text-slate-500">From:</span>
-                          <span className="truncate max-w-[200px]" title={tx.senderAddress}>
-                            {tx.senderAddress}
-                          </span>
-                        </div>
-                      )}
-                      {tx.receiverAddress && (
-                        <div className="flex justify-between items-center gap-2">
-                          <span className="text-slate-500">To:</span>
-                          <span className="truncate max-w-[200px]" title={tx.receiverAddress}>
-                            {tx.receiverAddress}
-                          </span>
-                        </div>
-                      )}
-                      {tx.escrowContract && (
-                        <div className="flex justify-between items-center gap-2">
-                          <span className="text-slate-500">Escrow:</span>
-                          <span className="truncate max-w-[200px]" title={tx.escrowContract}>
-                            {tx.escrowContract}
-                          </span>
-                        </div>
-                      )}
-                      {tx.txHash && (
-                        <div className="pt-1.5 flex justify-end">
-                          <a
-                            href={`https://stellar.expert/explorer/testnet/tx/${tx.txHash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 h-7 px-2.5 rounded bg-space-800 hover:bg-space-700 border border-space-700/50 text-[9px] font-semibold text-teal-400 transition-colors"
-                          >
-                            <span>Explorer ↗</span>
-                          </a>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="overflow-hidden mt-3 pt-3 border-t border-space-800/80 space-y-2.5 text-[10px] font-mono text-slate-300"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {tx.senderAddress && (
+                          <div className="flex justify-between items-center gap-2">
+                            <span className="text-slate-500">From:</span>
+                            <span className="truncate max-w-[200px]" title={tx.senderAddress}>
+                              {tx.senderAddress}
+                            </span>
+                          </div>
+                        )}
+                        {tx.receiverAddress && (
+                          <div className="flex justify-between items-center gap-2">
+                            <span className="text-slate-500">To:</span>
+                            <span className="truncate max-w-[200px]" title={tx.receiverAddress}>
+                              {tx.receiverAddress}
+                            </span>
+                          </div>
+                        )}
+                        {tx.escrowContract && (
+                          <div className="flex justify-between items-center gap-2">
+                            <span className="text-slate-500">Escrow:</span>
+                            <span className="truncate max-w-[200px]" title={tx.escrowContract}>
+                              {tx.escrowContract}
+                            </span>
+                          </div>
+                        )}
+                        {tx.txHash && (
+                          <div className="pt-1.5 flex justify-end">
+                            <a
+                              href={`https://stellar.expert/explorer/testnet/tx/${tx.txHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 h-7 px-2.5 rounded bg-space-800 hover:bg-space-700 border border-space-700/50 text-[9px] font-semibold text-teal-400 transition-colors"
+                            >
+                              <span>Explorer ↗</span>
+                            </a>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             );

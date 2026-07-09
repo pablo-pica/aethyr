@@ -72,7 +72,7 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
   };
 
   return (
-    <div className="p-5 rounded-2xl glass-card space-y-4">
+    <div className="space-y-4 pt-4 border-t border-space-800 mt-5">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
           <span>Milestone Editor</span>
@@ -117,7 +117,7 @@ export default function MilestoneBuilder({ milestones, onChange }: MilestoneBuil
           <p className="text-xs text-slate-500 text-center py-4">No milestones defined. Add one below.</p>
         ) : (
           milestones.map((m, idx) => (
-            <div key={idx} className="bg-slate-950 p-3.5 border border-slate-800 rounded-xl space-y-2.5">
+            <div key={idx} className="py-3.5 border-b border-space-800/80 space-y-2.5 last:border-b-0">
               {/* Description Input & Delete Button Row */}
               <div className="flex gap-2.5 items-center">
                 <span className="text-xs font-mono text-slate-500 w-5 text-right shrink-0">{idx + 1}.</span>
