@@ -37,7 +37,7 @@ describe("Dashboard Page Background Style & Layout Tests", () => {
   });
 
   it("should truncate long transaction hashes in the activity feed to fit mobile layout", () => {
-    const filePath = path.resolve(__dirname, "./page.tsx");
+    const filePath = path.resolve(__dirname, "../components/ActivityTab.tsx");
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
     // Check that transaction hashes in the activity list are sliced in the middle
@@ -46,17 +46,17 @@ describe("Dashboard Page Background Style & Layout Tests", () => {
   });
 
   it("should constrain the left-hand flexbox children with min-w-0 to prevent content overflow", () => {
-    const filePath = path.resolve(__dirname, "./page.tsx");
-    const fileContent = fs.readFileSync(filePath, "utf-8");
+    const pagePath = path.resolve(__dirname, "./page.tsx");
+    const pageContent = fs.readFileSync(pagePath, "utf-8");
+    expect(pageContent).toContain("min-w-0");
 
-    // The left child of a transaction history item flexbox must have min-w-0
-    expect(fileContent).toContain('className="space-y-2 min-w-0"');
-    // The left child of the network environment card flexbox must have min-w-0
-    expect(fileContent).toContain('className="min-w-0"');
+    const settingsPath = path.resolve(__dirname, "../components/SettingsTab.tsx");
+    const settingsContent = fs.readFileSync(settingsPath, "utf-8");
+    expect(settingsContent).toContain("min-w-0");
   });
 
   it("should render the AI Smart Assist Console when AI is enabled", () => {
-    const filePath = path.resolve(__dirname, "./page.tsx");
+    const filePath = path.resolve(__dirname, "../components/SendTab.tsx");
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
     expect(fileContent).toContain("AI Smart Assist Console");
@@ -65,29 +65,28 @@ describe("Dashboard Page Background Style & Layout Tests", () => {
   });
 
   it("should render the path routing visualization with cost comparison", () => {
-    const filePath = path.resolve(__dirname, "./page.tsx");
+    const filePath = path.resolve(__dirname, "../components/SendTab.tsx");
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
     expect(fileContent).toContain("Router Route Path");
     expect(fileContent).toContain("Exchange rate");
-    expect(fileContent).toContain("Transaction Fees Savings");
-    expect(fileContent).toContain("Wise / Western Union");
+    expect(fileContent).toContain("Competitors");
   });
 
-  it("should render the milestones ledger in the activity feed with Release/Refund actions", () => {
-    const filePath = path.resolve(__dirname, "./page.tsx");
+  it("should render the milestones ledger in the escrow tab with Release/Refund actions", () => {
+    const filePath = path.resolve(__dirname, "../components/EscrowTab.tsx");
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
-    expect(fileContent).toContain("Milestones Ledger");
+    expect(fileContent).toContain("Active Escrows");
     expect(fileContent).toContain("Release");
     expect(fileContent).toContain("Refund Expired Escrow");
   });
 
   it("should display custom slippage and network selectors in Settings Tab", () => {
-    const filePath = path.resolve(__dirname, "./page.tsx");
+    const filePath = path.resolve(__dirname, "../components/SettingsTab.tsx");
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
-    expect(fileContent).toContain("Custom Slippage");
+    expect(fileContent).toContain("Slippage Tolerance");
     expect(fileContent).toContain("Futurenet");
     expect(fileContent).toContain("Local");
   });

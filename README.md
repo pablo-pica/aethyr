@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs" alt="Next.js">
   <img src="https://img.shields.io/badge/Tailwind-v4-38bdf8?style=flat-square&logo=tailwindcss" alt="Styling">
   <img src="https://img.shields.io/badge/Rust%20Tests-11%2F11%20Passed-green?style=flat-square&logo=rust" alt="Rust Tests">
-  <img src="https://img.shields.io/badge/Vitest-24%2F24%20Passed-green?style=flat-square&logo=vitest" alt="Vitest Tests">
+  <img src="https://img.shields.io/badge/Vitest-46%2F46%20Passed-green?style=flat-square&logo=vitest" alt="Vitest Tests">
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
 </p>
 
@@ -56,7 +56,7 @@ Traditional international remittance networks impose significant overhead throug
 * 🤖 **AI Intent Parser**: Gemini-powered natural language bar that converts human commands (e.g., *"Pay 100 XLM to GA... for Milestone 1"*) into structured transaction payloads.
 * 📱 **PWA-Ready Layout**: Full-bleed mobile UI with safe-area notch handling, glassmorphic drawers, and a desktop phone-shell mockup.
 * 🏗️ **Visual Milestone Builder**: Drag-and-edit milestone card editor for composing AI-drafted escrow milestones before on-chain submission.
-* 🧪 **24 passing Vitest tests** covering AI parsing, page integration, component rendering, and API route logic.
+* 🧪 **46 passing Vitest tests** covering AI parsing, page integration, component rendering, and API route logic.
 * 🔒 **Pre-commit security hooks** scanning for Stellar private key leaks and running full test suites before every commit.
 
 ---
@@ -129,9 +129,15 @@ aethyr/
 │   │   ├── page.test.tsx    # Page component integration tests
 │   │   └── layout.tsx       # Global wrappers and metadata setup
 │   ├── components/          # Reusable React components
+│   │   ├── ui/              # BottomSheet, CustomNumberInput, SegmentedControl, ConfirmationDialog, Toast, InfoTooltip
 │   │   ├── BottomNav.tsx    # Mobile-friendly PWA bottom tab navigation
 │   │   ├── MilestoneBuilder.tsx # Visual milestone card editor
-│   │   ├── ProfileDrawer.tsx# Wallet balance overview and account control drawer
+│   │   ├── ProfileDrawer.tsx# Wallet balance overview and account control bottom sheet
+│   │   ├── WalletPickerBottomSheet.tsx # Custom dark wallet picker
+│   │   ├── SendTab.tsx      # Main Send / Swap view component
+│   │   ├── EscrowTab.tsx    # Escrow Creation form and milestones tracker view
+│   │   ├── ActivityTab.tsx  # Interactive transaction log view
+│   │   ├── SettingsTab.tsx  # Configurable network and slippage preset controls
 │   │   └── WalletConnect.tsx# Interactive wallet status controller
 │   ├── hooks/
 │   │   ├── useFreighter.ts  # Legacy Freighter-only hook

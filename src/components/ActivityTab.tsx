@@ -162,7 +162,7 @@ export default function ActivityTab({ transactions }: ActivityTabProps) {
                       <span>Hash:</span>
                       <span className="text-slate-300 font-semibold">
                         {tx.txHash.length > 12
-                          ? `${tx.txHash.slice(0, 6)}...${tx.txHash.slice(-6)}`
+                          ? `${tx.txHash.slice(0, 4)}...${tx.txHash.slice(-4)}`
                           : tx.txHash}
                       </span>
                     </div>

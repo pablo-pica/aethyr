@@ -1,32 +1,24 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  SendHorizontal,
-  Coins,
-  ArrowUpRight,
-  TrendingUp,
-  ExternalLink,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  HelpCircle,
-  Clock,
-  Sparkles,
-  Settings2,
-  Layers,
-  Search,
-} from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, ExternalLink, ArrowUpRight } from "lucide-react";
 import { useStellarWallet } from "@/hooks/useStellarWallet";
-import { parseAiIntent } from "@/lib/aiParser";
 import dynamic from "next/dynamic";
+import { motion, AnimatePresence } from "framer-motion";
+
 const WalletConnect = dynamic(() => import("@/components/WalletConnect"), {
   ssr: false,
 });
 import BottomNav, { TabId } from "@/components/BottomNav";
 import ProfileDrawer from "@/components/ProfileDrawer";
+import WalletPickerBottomSheet from "@/components/WalletPickerBottomSheet";
+import SendTab from "@/components/SendTab";
+import EscrowTab from "@/components/EscrowTab";
+import ActivityTab from "@/components/ActivityTab";
+import SettingsTab from "@/components/SettingsTab";
+import { Toast, ToastContainer } from "@/components/ui/Toast";
+import { Milestone } from "@/components/MilestoneBuilder";
 import { validateStellarAddress } from "@/lib/utils";
-import MilestoneBuilder, { Milestone } from "@/components/MilestoneBuilder";
 
 interface TransactionItem {
   id: string;
@@ -46,7 +38,6 @@ interface TransactionItem {
   milestones?: Milestone[];
   isExpired?: boolean;
 }
-
 
 export default function Dashboard() {
   const {
@@ -70,8 +61,9 @@ export default function Dashboard() {
   // Tab routing view state
   const [activeTab, setActiveTab] = useState<TabId>("send");
 
-  // Profile drawer visibility
+  // Bottom sheets visibility
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isWalletPickerOpen, setIsWalletPickerOpen] = useState(false);
 
   // Send Form States
   const [recipient, setRecipient] = useState("");
@@ -82,11 +74,6 @@ export default function Dashboard() {
   const [txError, setTxError] = useState("");
   const [isRouted, setIsRouted] = useState(true);
 
-  // AI Assist & Milestones State
-  const [aiInput, setAiInput] = useState("");
-  const [milestones, setMilestones] = useState<Milestone[]>([]);
-  const [expandedEscrows, setExpandedEscrows] = useState<Record<string, boolean>>({});
-
   // Simulated User Role for Escrow Milestones Actions
   const [userRole, setUserRole] = useState<"client" | "freelancer" | "mediator" | "auto">("client");
 
@@ -96,14 +83,15 @@ export default function Dashboard() {
   const [network, setNetwork] = useState("Testnet");
 
   // Toast Notification State & Action
-  const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "error" | "info" }[]>([]);
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     const id = `toast-${Date.now()}`;
     setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4500);
+  }, []);
+
+  const handleDismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
   // Listen to connection errors
@@ -113,59 +101,21 @@ export default function Dashboard() {
     }
   }, [walletError, showToast]);
 
+  const [expandedEscrows, setExpandedEscrows] = useState<Record<string, boolean>>({});
+
   const toggleEscrowExpand = (txId: string) => {
     setExpandedEscrows((prev) => ({ ...prev, [txId]: !prev[txId] }));
   };
 
-  const handleAiParse = () => {
-    if (!aiInput.trim()) return;
-    try {
-      const parsed = parseAiIntent(aiInput);
-      if (parsed.recipient) setRecipient(parsed.recipient);
-      if (parsed.amount) setAmount(parsed.amount);
-      
-      if (parsed.type === "escrow") {
-        setIsRouted(true);
-        if (parsed.milestones && parsed.milestones.length > 0) {
-          setMilestones(parsed.milestones);
-        } else {
-          setMilestones([
-            { description: "Milestone 1", payout_weight: 5000, is_completed: false, is_disputed: false, submitted_at: 0 },
-            { description: "Milestone 2", payout_weight: 5000, is_completed: false, is_disputed: false, submitted_at: 0 }
-          ]);
-        }
-      } else {
-        setIsRouted(false);
-        setMilestones([]);
-      }
-
-      let summary = `Parsed intent: ${parsed.type.toUpperCase()}.`;
-      if (parsed.amount) {
-        summary += ` Amount: ${parsed.amount} ${parsed.asset || "XLM"}.`;
-      }
-      if (parsed.recipient) {
-        summary += ` Recipient populated.`;
-      }
-      if (parsed.milestones.length > 0) {
-        summary += ` Loaded ${parsed.milestones.length} milestones.`;
-      }
-      showToast(summary, "success");
-    } catch (err: any) {
-      showToast("Parsing failed: " + err.message, "error");
-    }
-  };
-
-  const handleReleaseMilestone = async (txId: string, milestoneIndex: number) => {
+  const handleRelease = async (txId: string, milestoneIndex: number) => {
     const tx = transactions.find((t) => t.id === txId);
     if (!tx || !tx.escrowContract || !tx.escrowId) {
       showToast("Escrow details not found.", "error");
       return;
     }
-
     try {
-      showToast("Executing release_milestone on-chain...", "info");
+      showToast("Releasing milestone funds...", "info");
       await releaseMilestone(tx.escrowContract, tx.escrowId, milestoneIndex);
-      
       setTransactions((prev) =>
         prev.map((t) => {
           if (t.id === txId && t.milestones) {
@@ -182,17 +132,15 @@ export default function Dashboard() {
     }
   };
 
-  const handleRefundEscrow = async (txId: string) => {
+  const handleRefund = async (txId: string) => {
     const tx = transactions.find((t) => t.id === txId);
     if (!tx || !tx.escrowContract || !tx.escrowId) {
       showToast("Escrow details not found.", "error");
       return;
     }
-
     try {
-      showToast("Executing refund_escrow on-chain...", "info");
+      showToast("Executing refund_escrow...", "info");
       await refundEscrow(tx.escrowContract, tx.escrowId);
-      
       setTransactions((prev) =>
         prev.map((t) => {
           if (t.id === txId) {
@@ -207,7 +155,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleSubmitMilestone = async (txId: string, milestoneIndex: number) => {
+  const handleSubmitWork = async (txId: string, milestoneIndex: number) => {
     const tx = transactions.find((t) => t.id === txId);
     if (!tx || !tx.escrowContract || !tx.escrowId) {
       showToast("Escrow details not found.", "error");
@@ -235,7 +183,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleDisputeMilestone = async (txId: string, milestoneIndex: number) => {
+  const handleDispute = async (txId: string, milestoneIndex: number) => {
     const tx = transactions.find((t) => t.id === txId);
     if (!tx || !tx.escrowContract || !tx.escrowId) {
       showToast("Escrow details not found.", "error");
@@ -263,7 +211,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleAutoReleaseMilestone = async (txId: string, milestoneIndex: number) => {
+  const handleAutoRelease = async (txId: string, milestoneIndex: number) => {
     const tx = transactions.find((t) => t.id === txId);
     if (!tx || !tx.escrowContract || !tx.escrowId) {
       showToast("Escrow details not found.", "error");
@@ -324,19 +272,17 @@ export default function Dashboard() {
       amountOut: "5.85",
       assetOut: "USDC",
       description: "Asset Swap (DEX Routing)",
-      txHash: "bf82d1c8f89e...",
+      txHash: "bf82d1c8f89e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3f4e5a6b7c8d9e0f1",
     },
   ]);
-
-
-
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!recipient || !amount) return;
 
+    // Form input validation checks - inline alerts/toasts
     if (!validateStellarAddress(recipient)) {
-      const errMsg = "Invalid recipient address. Stellar addresses start with 'G' followed by 55 characters.";
+      const errMsg = "Invalid recipient address format. Stellar public keys start with G.";
       setTxError(errMsg);
       setTxStatus("failed");
       showToast(errMsg, "error");
@@ -344,7 +290,7 @@ export default function Dashboard() {
     }
 
     if (Number(amount) <= 0) {
-      const errMsg = "Amount must be greater than 0.";
+      const errMsg = "Amount must be greater than zero.";
       setTxError(errMsg);
       setTxStatus("failed");
       showToast(errMsg, "error");
@@ -352,7 +298,7 @@ export default function Dashboard() {
     }
 
     if (Number(amount) > Number(balance)) {
-      const errMsg = "Insufficient XLM balance.";
+      const errMsg = "Insufficient XLM balance to complete transfer.";
       setTxError(errMsg);
       setTxStatus("failed");
       showToast(errMsg, "error");
@@ -373,19 +319,8 @@ export default function Dashboard() {
         const slipVal = parseFloat(slippage) || 1.0;
         const minAmountOut = (parseFloat(amount) * (100 - slipVal) / 100).toFixed(7);
         
-        if (milestones.length > 0) {
-          // Verify total weight is exactly 100% (10000 bps)
-          const totalWeight = milestones.reduce((sum, m) => sum + m.payout_weight, 0);
-          if (totalWeight !== 10000) {
-            throw new Error(`Total milestone weight must equal exactly 100% (currently ${totalWeight / 100}%). Click "Auto-balance weights" to fix.`);
-          }
-          const escrowContract = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ID || "CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO";
-          const result = await routeToEscrow(escrowContract, recipient, path, amount, minAmountOut, milestones);
-          hash = result.hash;
-        } else {
-          const result = await routePayment(recipient, path, amount, minAmountOut);
-          hash = result.hash;
-        }
+        const result = await routePayment(recipient, path, amount, minAmountOut);
+        hash = result.hash;
       } else {
         // Direct XLM payment
         const result = await sendXLM(recipient, amount);
@@ -399,7 +334,7 @@ export default function Dashboard() {
       // Add transaction to the activity log dynamically
       const newTx: TransactionItem = {
         id: `tx-${Date.now()}`,
-        type: (isRouted && milestones.length > 0) ? "escrow" : (isRouted ? "swap" : "send"),
+        type: isRouted ? "swap" : "send",
         status: "success",
         timestamp: "Just now",
         amountIn: amount,
@@ -407,28 +342,17 @@ export default function Dashboard() {
         amountOut: isRouted ? amount : undefined,
         assetOut: isRouted ? "XLM" : undefined,
         txHash: hash,
-        description: (isRouted && milestones.length > 0)
-          ? `Routed Escrow to ${recipient.slice(0, 4)}...${recipient.slice(-4)}`
-          : (isRouted 
-            ? `Routed payment to ${recipient.slice(0, 4)}...${recipient.slice(-4)}`
-            : `Direct transfer to ${recipient.slice(0, 4)}...${recipient.slice(-4)}`),
-        escrowContract: process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ID || "CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO",
-        escrowId: "8a92b3c4d5e6f7a8b9c0d1e2f3f4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2", // simulated for UI
+        description: isRouted 
+          ? `Routed payment to ${recipient.slice(0, 4)}...${recipient.slice(-4)}`
+          : `Direct transfer to ${recipient.slice(0, 4)}...${recipient.slice(-4)}`,
         senderAddress: address || "",
         receiverAddress: recipient,
-        milestones: (isRouted && milestones.length > 0) ? milestones : undefined,
         isExpired: false,
       };
       setTransactions((prev) => [newTx, ...prev]);
-
-      // Reset form and UI helper states on success
-      setRecipient("");
-      setAmount("");
-      setMilestones([]);
-      setAiInput("");
     } catch (err: any) {
       console.error(err);
-      const errMsg = err.message || "Transaction failed or user rejected the signing request.";
+      const errMsg = err.message || "Transaction execution was cancelled or failed.";
       setTxError(errMsg);
       setTxStatus("failed");
       showToast(errMsg, "error");
@@ -437,16 +361,121 @@ export default function Dashboard() {
     }
   };
 
+  const onCreateEscrow = async (escrowRecipient: string, escrowAmount: string, escrowMilestones: Milestone[]) => {
+    if (!address) {
+      showToast("Wallet is not connected.", "error");
+      return;
+    }
+    setSendLoading(true);
+    setTxStatus("sending");
+    setTxError("");
+    setTxHash("");
+
+    try {
+      const XLM_SAC_ADDRESS = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+      const path = [XLM_SAC_ADDRESS, XLM_SAC_ADDRESS];
+      const slipVal = parseFloat(slippage) || 1.0;
+      const minAmountOut = (parseFloat(escrowAmount) * (100 - slipVal) / 100).toFixed(7);
+      
+      const escrowContract = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ID || "CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO";
+      const result = await routeToEscrow(escrowContract, escrowRecipient, path, escrowAmount, minAmountOut, escrowMilestones);
+      const hash = result.hash;
+
+      setTxHash(hash);
+      setTxStatus("success");
+      showToast("Escrow Lock created successfully!", "success");
+
+      // Add to transaction log
+      const newTx: TransactionItem = {
+        id: `tx-${Date.now()}`,
+        type: "escrow",
+        status: "success",
+        timestamp: "Just now",
+        amountIn: escrowAmount,
+        assetIn: "XLM",
+        txHash: hash,
+        description: `Milestone Escrow to ${escrowRecipient.slice(0, 4)}...${escrowRecipient.slice(-4)}`,
+        escrowContract,
+        escrowId: "8a92b3c4d5e6f7a8b9c0d1e2f3f4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2",
+        senderAddress: address || "",
+        receiverAddress: escrowRecipient,
+        milestones: escrowMilestones,
+        isExpired: false,
+      };
+      setTransactions((prev) => [newTx, ...prev]);
+    } catch (err: any) {
+      console.error(err);
+      const errMsg = err.message || "Escrow lock creation failed.";
+      setTxError(errMsg);
+      setTxStatus("failed");
+      showToast(errMsg, "error");
+      throw err;
+    } finally {
+      setSendLoading(false);
+    }
+  };
+
+  const handleSelectWallet = async (walletId: string) => {
+    try {
+      await connect(walletId);
+    } catch (err) {
+      // handled inside hook
+    }
+  };
+
+  // Header border shadow scroll detection
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const handleScroll = (e: any) => {
+      if (e.target.scrollTop > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+    const mainEl = document.getElementById("main-content");
+    mainEl?.addEventListener("scroll", handleScroll);
+    return () => mainEl?.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const renderParticles = () => {
+    return Array.from({ length: 12 }).map((_, i) => {
+      const angle = (i * 360) / 12;
+      const distance = 45 + Math.random() * 40;
+      const delay = Math.random() * 0.15;
+      const scale = 0.4 + Math.random() * 0.6;
+      const color = i % 3 === 0 ? "bg-teal-400" : i % 3 === 1 ? "bg-indigo-400" : "bg-cyan-400";
+      return (
+        <motion.div
+          key={i}
+          initial={{ scale: 0, x: 0, y: 0 }}
+          animate={{
+            scale: [0, scale, 0],
+            x: Math.cos((angle * Math.PI) / 180) * distance,
+            y: Math.sin((angle * Math.PI) / 180) * distance,
+          }}
+          transition={{
+            duration: 0.65,
+            delay,
+            ease: "easeOut",
+          }}
+          className={`absolute w-2 h-2 rounded-full ${color}`}
+        />
+      );
+    });
+  };
 
   return (
     <div className="min-h-screen bg-space-950 md:bg-slate-900 flex items-center justify-center p-0 md:p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-indigo/5 via-space-950 to-space-950 md:bg-none">
       {/* Mobile Device Mockup Frame */}
-      <div className="w-full md:max-w-[420px] md:h-[840px] md:rounded-[40px] md:border md:border-space-700/50 md:shadow-[0_0_50px_rgba(0,0,0,0.8)] bg-space-950/80 backdrop-blur-xl relative overflow-hidden flex flex-col h-screen">
+      <div className="w-full md:max-w-[420px] md:h-[840px] md:rounded-[40px] md:border md:border-space-700/50 md:shadow-[0_0_50px_rgba(0,0,0,0.8)] bg-space-950/80 backdrop-blur-xl relative overflow-hidden flex flex-col h-screen" data-testid="mobile-mockup-frame">
         
-        {/* App Header */}
-        <header className="px-6 pt-[calc(1.25rem+var(--sat))] pb-4 border-b border-space-700/30 flex items-center justify-between bg-space-900/40 backdrop-blur-md sticky top-0 z-30">
+        {/* App Header (Frosted glass + Scroll Border effect) */}
+        <header className={`px-6 pt-[calc(1.25rem+var(--sat))] pb-4 flex items-center justify-between bg-space-900/80 backdrop-blur-lg sticky top-0 z-30 transition-all duration-300 ${
+          scrolled ? "border-b border-teal-500/10 shadow-lg shadow-black/15" : "border-b border-transparent"
+        }`} data-testid="app-header">
           <div className="flex items-center gap-2 select-none min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary-indigo to-primary-cyan flex items-center justify-center font-display font-black text-white text-base shadow-lg shadow-primary-indigo/20">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-400 to-primary-indigo flex items-center justify-center font-display font-black text-white text-base shadow-lg shadow-teal-500/10">
               Æ
             </div>
             <div>
@@ -458,695 +487,180 @@ export default function Dashboard() {
               </p>
             </div>
           </div>
-          <WalletConnect
-            isConnected={isConnected}
-            address={address}
-            connect={connect}
-            openDrawer={() => setIsDrawerOpen(true)}
-            isLoading={walletLoading}
-          />
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-bold text-slate-400 bg-space-800 border border-space-700/60 px-2 py-0.5 rounded-full select-none">
+              Testnet
+            </span>
+            <WalletConnect
+              isConnected={isConnected}
+              address={address}
+              connect={() => setIsWalletPickerOpen(true)}
+              openDrawer={() => setIsDrawerOpen(true)}
+              isLoading={walletLoading}
+            />
+          </div>
         </header>
 
         {/* Viewport Content */}
-        <main className="flex-1 overflow-y-auto px-6 py-6 pb-24 space-y-6">
+        <main id="main-content" className="flex-1 overflow-y-auto px-6 py-6 pb-24 space-y-6">
           
-          {/* TAB 1: SEND / SWAP */}
-          {activeTab === "send" && (
-            <div className="space-y-6">
-              
-              {/* Wallet Info Display */}
-              {isConnected && address && (
-                <div className="p-4 rounded-2xl glass-card flex items-center justify-between border-primary-indigo/20 bg-[linear-gradient(135deg,_rgba(99,102,241,0.05)_0%,_rgba(9,13,22,0.6)_100%)]">
-                  <div className="space-y-1 min-w-0">
-                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                      Available Balance
-                    </span>
-                    <h2 className="text-xl font-bold font-mono text-slate-100 flex items-baseline gap-1">
-                      {Number(balance).toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                      <span className="text-xs text-primary-indigo font-sans font-semibold">XLM</span>
-                    </h2>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-space-800/80 border border-space-700/50 flex items-center justify-center">
-                    <Coins className="w-5 h-5 text-primary-cyan animate-pulse-glow" />
-                  </div>
-                </div>
-              )}
-
-              {/* Transaction Status Overlay/Cards */}
-              {txStatus === "sending" && (
-                <div className="p-6 rounded-2xl border border-primary-indigo/30 bg-primary-indigo/5 text-center space-y-4">
-                  <div className="relative w-16 h-16 mx-auto">
-                    <div className="absolute inset-0 rounded-full border-4 border-primary-indigo/20" />
-                    <div className="absolute inset-0 rounded-full border-4 border-t-primary-indigo animate-spin" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-semibold text-slate-200">
-                      Broadcasting Transaction
-                    </h3>
-                    <p className="text-xs text-slate-400 max-w-[240px] mx-auto">
-                      Please sign the transaction payload in Freighter and wait for confirmation.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {txStatus === "success" && (
-                <div className="p-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-center space-y-4 animate-pulse-glow">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-bold text-slate-200">Payment Transmitted!</h3>
-                    <p className="text-xs text-slate-400">Your funds were sent successfully on Stellar Testnet.</p>
-                  </div>
-                  {txHash && (
-                    <div className="bg-space-950/60 p-3 rounded-xl border border-space-800 flex flex-col gap-2">
-                      <div className="flex items-center justify-between text-[10px] font-mono">
-                        <span className="text-slate-400 min-w-0">TX Hash:</span>
-                        <span className="text-slate-200 font-bold">{txHash.slice(0, 10)}...{txHash.slice(-10)}</span>
-                      </div>
-                      <a
-                        href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="h-8 rounded-lg bg-space-800/80 hover:bg-space-800 border border-space-700/40 text-[10px] font-semibold text-slate-200 flex items-center justify-center gap-1.5 transition-all"
-                      >
-                        View on StellarExplorer
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => setTxStatus("idle")}
-                    className="text-xs text-primary-indigo hover:text-primary-blue font-semibold transition-colors"
-                  >
-                    Send another transaction
-                  </button>
-                </div>
-              )}
-
-              {txStatus === "failed" && (
-                <div className="p-6 rounded-2xl border border-red-500/20 bg-red-500/5 text-center space-y-4">
-                  <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto">
-                    <XCircle className="w-6 h-6 text-red-400" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-semibold text-slate-200">Transaction Failed</h3>
-                    <p className="text-xs text-red-400/90 max-w-[280px] mx-auto font-mono px-2 py-1 rounded bg-red-950/20 border border-red-900/30">
-                      {txError}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setTxStatus("idle")}
-                    className="text-xs text-slate-400 hover:text-slate-200 font-semibold underline transition-colors"
-                  >
-                    Dismiss and return
-                  </button>
-                </div>
-              )}
-
-              {/* AI Smart Assist Console */}
-              {isAiEnabled && isConnected && address && txStatus === "idle" && (
-                <div className="p-4 rounded-2xl glass-card border-primary-indigo/20 bg-space-900/40 space-y-3">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-200">
-                    <Sparkles className="w-4 h-4 text-primary-cyan animate-pulse-glow" />
-                    <span>AI Smart Assist Console</span>
-                  </div>
-                  <p className="text-[10px] text-slate-400 leading-relaxed">
-                    Type a command in plain English to auto-populate the payment form (e.g. "Send 50 XLM to G..." or "Escrow 100 USDC to G... with milestones: 30% UI, 70% backend").
-                  </p>
-                  <div className="relative">
-                    <textarea
-                      value={aiInput}
-                      onChange={(e) => setAiInput(e.target.value)}
-                      placeholder="Type pay or escrow instructions..."
-                      rows={2}
-                      className="w-full p-3 rounded-xl bg-space-950/80 border border-space-800 focus:ring-1 focus:ring-primary-indigo focus:border-primary-indigo text-xs text-slate-100 placeholder-slate-500 outline-none resize-none transition-all focus:shadow-[0_0_10px_rgba(99,102,241,0.15)]"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAiParse}
-                    className="w-full h-9 rounded-xl bg-primary-indigo/10 border border-primary-indigo/30 hover:bg-primary-indigo/20 text-xs font-bold text-primary-indigo active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Parse Command
-                  </button>
-                </div>
-              )}
-
-              {/* Main Transfer Form (Connected state) */}
-              {isConnected && address && txStatus === "idle" && (
-                <form onSubmit={handleSend} className="space-y-5">
-                  <div className="space-y-4">
-                    {/* Destination Address Input */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-300 px-1">
-                        Recipient Address
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          required
-                          value={recipient}
-                          onChange={(e) => setRecipient(e.target.value)}
-                          placeholder="G..."
-                          className="w-full h-12 pl-4 pr-10 rounded-xl bg-space-900/50 border border-space-700/50 focus:ring-2 focus:ring-primary-indigo/30 focus:border-primary-indigo/80 text-sm font-mono text-slate-100 placeholder-slate-500 outline-none transition-all"
-                        />
-                        <div className="absolute right-3 top-3.5 text-slate-500">
-                          <ArrowUpRight className="w-5 h-5" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Amount Input */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-300 px-1">
-                        Send Amount
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          step="0.0000001"
-                          required
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                          placeholder="0.00"
-                          className="w-full h-12 pl-4 pr-16 rounded-xl bg-space-900/50 border border-space-700/50 focus:ring-2 focus:ring-primary-indigo/30 focus:border-primary-indigo/80 text-sm font-mono text-slate-100 placeholder-slate-500 outline-none transition-all"
-                        />
-                        <div className="absolute right-4 top-3.5 text-xs font-bold text-primary-indigo">
-                          XLM
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Routing Type Selection */}
-                    <div className="p-3.5 rounded-xl bg-space-900/40 border border-space-700/30 flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <span className="text-xs font-semibold text-slate-200">
-                          Route via Soroban Contract
-                        </span>
-                        <p className="text-[10px] text-slate-400">
-                          Swaps and executes payment through on-chain router
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const routeVal = !isRouted;
-                          setIsRouted(routeVal);
-                          if (!routeVal) {
-                            setMilestones([]);
-                          }
-                        }}
-                        className={`w-10 h-6 rounded-full transition-colors relative outline-none border border-space-700 ${
-                          isRouted ? "bg-primary-indigo" : "bg-space-850"
-                        }`}
-                      >
-                        <span
-                          className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-transform ${
-                            isRouted ? "left-5" : "left-1"
-                          }`}
-                        />
-                      </button>
-                    </div>
-
-                    {/* Milestones list for Escrow payments */}
-                    {isRouted && (
-                      <MilestoneBuilder
-                        milestones={milestones}
-                        onChange={setMilestones}
-                      />
-                    )}
-
-                    {/* Path Routing Visualization */}
-                    {isRouted && (
-                      <div className="p-4 rounded-2xl glass-card border-primary-cyan/20 bg-[linear-gradient(135deg,_rgba(6,182,212,0.03)_0%,_rgba(9,13,22,0.5)_100%)] space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <Layers className="w-3.5 h-3.5 text-primary-cyan" />
-                            <span className="text-[10px] font-bold text-slate-200 uppercase tracking-wider">Router Route Path</span>
-                          </div>
-                          <span className="text-[9px] text-emerald-400 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">Optimal path found</span>
-                        </div>
-
-                        {/* sleek multi-hop pathway */}
-                        <div className="flex items-center justify-between bg-space-950/40 p-3 rounded-xl border border-space-850">
-                          <div className="flex flex-col items-center">
-                            <span className="text-xs font-bold text-slate-100">XLM</span>
-                            <span className="text-[8px] text-slate-500 font-mono">Source</span>
-                          </div>
-                          <div className="flex-1 flex flex-col items-center px-1">
-                            <span className="text-[8px] text-slate-400 font-mono">Rate: 0.117</span>
-                            <span className="text-slate-500 text-xs">➔</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span className="text-xs font-bold text-slate-100">USDC</span>
-                            <span className="text-[8px] text-slate-500 font-mono">Hop</span>
-                          </div>
-                          <div className="flex-1 flex flex-col items-center px-1">
-                            <span className="text-[8px] text-slate-400 font-mono">Rate: 58.45</span>
-                            <span className="text-slate-500 text-xs">➔</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span className="text-xs font-bold text-slate-100">Mock PHP</span>
-                            <span className="text-[8px] text-slate-500 font-mono">Destination</span>
-                          </div>
-                        </div>
-
-                        {/* exchange rates and slippage safety limit */}
-                        <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                          <span>Est. Exchange rate:</span>
-                          <span className="text-slate-200">1 XLM = 6.84 Mock PHP</span>
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                          <span>Slippage Safety Limit:</span>
-                          <span className="text-slate-200 font-semibold">Min. Out: {amount ? (parseFloat(amount) * (100 - parseFloat(slippage)) / 100).toFixed(4) : "0.0000"} XLM</span>
-                        </div>
-
-                        {/* fee savings comparison chart/indicator */}
-                        <div className="space-y-2 pt-2 border-t border-space-850">
-                          <div className="flex items-center justify-between text-[10px]">
-                            <span className="font-semibold text-slate-300">Transaction Fees Savings</span>
-                            <span className="text-emerald-400 font-bold">Save $4.4999</span>
-                          </div>
-                          
-                          <div className="space-y-1.5">
-                            <div>
-                              <div className="flex justify-between text-[8px] text-slate-400 mb-0.5">
-                                <span>Stellar (Aethyr)</span>
-                                <span className="text-emerald-400 font-mono font-bold">$0.0001 (Instant)</span>
-                              </div>
-                              <div className="w-full bg-space-950 h-1.5 rounded-full overflow-hidden border border-space-900">
-                                <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full" style={{ width: "0.1%" }} />
-                              </div>
-                            </div>
-                            <div>
-                              <div className="flex justify-between text-[8px] text-slate-400 mb-0.5">
-                                <span>Wise / Western Union</span>
-                                <span className="text-red-400 font-mono font-bold">$4.50 (1-3 Days)</span>
-                              </div>
-                              <div className="w-full bg-space-950 h-1.5 rounded-full overflow-hidden border border-space-900">
-                                <div className="bg-red-500/80 h-full rounded-full" style={{ width: "100%" }} />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Send Button */}
-                  <button
-                    type="submit"
-                    disabled={sendLoading}
-                    className="w-full h-12 rounded-xl neon-button text-sm font-bold text-white flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer"
-                  >
-                    <SendHorizontal className="w-4 h-4" />
-                    {milestones.length > 0 ? "Create Escrow Lock" : "Send Transaction"}
-                  </button>
-                </form>
-              )}
-
-              {/* Wallet Not Connected Empty State */}
-              {(!isConnected || !address) && (
-                <div className="p-8 rounded-2xl glass-card text-center space-y-5 border-space-700/30">
-                  <div className="w-14 h-14 rounded-2xl bg-space-900/80 border border-space-700/50 flex items-center justify-center mx-auto">
-                    <Coins className="w-7 h-7 text-primary-indigo" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-base font-bold text-slate-100">
-                      Cross-Border Remittances
-                    </h3>
-                    <p className="text-xs text-slate-400 max-w-[240px] mx-auto">
-                      Connect your Freighter wallet to start pathfinding routing transfers.
-                    </p>
-                  </div>
-                  <button
-                    onClick={connect}
-                    className="w-full h-11 rounded-xl neon-button text-xs font-bold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
-                  >
-                    <Coins className="w-4 h-4" />
-                    Connect Freighter
-                  </button>
-                </div>
-              )}
-
-              {/* AI assist preview bar */}
-              <div className="p-4 rounded-xl border border-space-700/20 bg-space-900/20 flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Sparkles className="w-4 h-4 text-primary-cyan animate-pulse-glow" />
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                    AI Assist Enabled
-                  </span>
-                </div>
-                <div className="w-2 h-2 rounded-full bg-primary-cyan animate-ping" />
+          {/* Broadcasting status modal block */}
+          {txStatus === "sending" && (
+            <div className="p-6 rounded-2xl border border-primary-indigo/35 bg-primary-indigo/5 text-center space-y-4" data-testid="tx-sending-block">
+              <div className="relative w-16 h-16 mx-auto">
+                <div className="absolute inset-0 rounded-full border-4 border-primary-indigo/20" />
+                <div className="absolute inset-0 rounded-full border-4 border-t-teal-400 animate-spin" />
               </div>
-
-            </div>
-          )}
-
-          {/* TAB 2: ACTIVITY FEED */}
-          {activeTab === "activity" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between px-1">
-                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-0">
-                  Transaction History
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-slate-200">
+                  Broadcasting Transaction
                 </h3>
-                <span className="text-[10px] text-slate-500 font-mono flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  Live Syncing
-                </span>
-              </div>
-
-              {/* Transactions List */}
-              <div className="space-y-3">
-                {transactions.map((tx) => (
-                  <div
-                    key={tx.id}
-                    className="p-4 rounded-2xl glass-card border-space-700/20 hover:border-space-700/40 transition-all flex flex-col gap-2"
-                  >
-                    <div className="flex justify-between items-start w-full">
-                      <div className="space-y-2 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                              tx.type === "escrow"
-                                ? "bg-primary-indigo/10 text-primary-indigo border border-primary-indigo/20"
-                                : tx.type === "swap"
-                                ? "bg-primary-cyan/10 text-primary-cyan border border-primary-cyan/20"
-                                : "bg-primary-blue/10 text-primary-blue border border-primary-blue/20"
-                            }`}
-                          >
-                            {tx.type}
-                          </span>
-                          <span className="text-[10px] text-slate-500 font-mono">
-                            {tx.timestamp}
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold text-slate-200">
-                          {tx.description}
-                        </p>
-                        {tx.txHash && (
-                          <div className="flex items-center gap-1 text-[9px] font-mono text-slate-400">
-                            <span>Hash:</span>
-                            <span className="text-slate-300">
-                              {tx.txHash.length > 8
-                                ? `${tx.txHash.slice(0, 4)}...${tx.txHash.slice(-4)}`
-                                : tx.txHash}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="flex items-baseline justify-end gap-0.5">
-                          <span className="text-xs font-bold text-slate-200">
-                            {tx.amountIn}
-                          </span>
-                          <span className="text-[9px] font-mono text-slate-400">
-                            {tx.assetIn}
-                          </span>
-                        </div>
-                        {tx.amountOut && tx.assetOut && (
-                          <div className="flex items-baseline justify-end gap-0.5 mt-0.5">
-                            <span className="text-[10px] font-semibold text-emerald-400">
-                              → {tx.amountOut}
-                            </span>
-                            <span className="text-[8px] font-mono text-slate-500">
-                              {tx.assetOut}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {tx.type === "escrow" && (
-                      <div className="mt-1">
-                        <button
-                          type="button"
-                          onClick={() => toggleEscrowExpand(tx.id)}
-                          className="text-[10px] font-bold text-primary-cyan hover:underline flex items-center gap-1 focus:outline-none"
-                        >
-                          {expandedEscrows[tx.id] ? "▼ Hide Milestones" : "▶ Show Milestones"}
-                        </button>
-
-                        {expandedEscrows[tx.id] && tx.milestones && (
-                          <div className="mt-3 pt-3 border-t border-space-800 space-y-3">
-                            {/* Role Switcher inside Escrow context */}
-                            <div className="p-2.5 rounded-xl bg-space-950/80 border border-space-850 space-y-1.5">
-                              <div className="flex justify-between items-center text-[9px]">
-                                <span className="font-semibold text-slate-400 uppercase tracking-wider">Active Role Selector:</span>
-                                <span className="font-mono text-primary-cyan uppercase font-bold">{userRole}</span>
-                              </div>
-                              <div className="grid grid-cols-4 gap-1">
-                                {(["client", "freelancer", "mediator", "auto"] as const).map((r) => (
-                                  <button
-                                    key={r}
-                                    type="button"
-                                    onClick={() => setUserRole(r)}
-                                    className={`h-6 rounded text-[8px] font-bold border transition-all cursor-pointer ${
-                                      userRole === r
-                                        ? "bg-primary-indigo/15 border-primary-indigo/40 text-primary-indigo"
-                                        : "bg-space-900 border-space-800 text-slate-400 hover:text-slate-200"
-                                    }`}
-                                  >
-                                    {r === "client" ? "Client" : r === "freelancer" ? "Freelancer" : r === "mediator" ? "Mediator" : "Auto"}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="flex justify-between items-center text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                              <span>Milestones Ledger</span>
-                              <span className="font-mono">
-                                Completed: {tx.milestones.filter(m => m.is_completed).length}/{tx.milestones.length}
-                              </span>
-                            </div>
-
-                            <div className="space-y-2">
-                              {tx.milestones.map((m, mIdx) => {
-                                const getMilestoneStatus = (milestone: any) => {
-                                  if (milestone.is_completed) return { label: "Completed", className: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" };
-                                  if (milestone.is_disputed) return { label: "Disputed", className: "bg-red-500/10 text-red-400 border border-red-500/20" };
-                                  if (milestone.submitted_at > 0) return { label: "Submitted", className: "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" };
-                                  return { label: "Open", className: "bg-slate-500/10 text-slate-400 border border-slate-500/20" };
-                                };
-                                const status = getMilestoneStatus(m);
-
-                                return (
-                                  <div
-                                    key={mIdx}
-                                    className="p-2.5 rounded-xl bg-space-950/60 border border-space-850 flex flex-col gap-2.5"
-                                  >
-                                    <div className="flex items-center justify-between gap-3 w-full">
-                                      <div className="space-y-0.5 min-w-0">
-                                        <p className="text-xs font-semibold text-slate-200 truncate">
-                                          {m.description}
-                                        </p>
-                                        <div className="flex items-center gap-1.5 text-[9px] font-mono text-slate-400">
-                                          <span>Weight: {m.payout_weight / 100}%</span>
-                                          <span className="w-1 h-1 rounded-full bg-space-700" />
-                                          <span className={`px-1.5 py-0.5 rounded text-[8px] ${status.className}`}>
-                                            {status.label}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Action Buttons depending on role */}
-                                    {!m.is_completed && (
-                                      <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-space-900">
-                                        {userRole === "freelancer" && !m.is_disputed && (!m.submitted_at || m.submitted_at === 0) && (
-                                          <button
-                                            type="button"
-                                            onClick={() => handleSubmitMilestone(tx.id, mIdx)}
-                                            className="h-7 px-2.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-500/40 hover:border-cyan-500/60 text-[9px] font-bold text-cyan-400 active:scale-95 transition-all cursor-pointer"
-                                          >
-                                            Submit Work
-                                          </button>
-                                        )}
-                                        {userRole === "client" && (
-                                          <>
-                                            <button
-                                              type="button"
-                                              onClick={() => handleReleaseMilestone(tx.id, mIdx)}
-                                              className="h-7 px-2.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-500/40 hover:border-emerald-500/60 text-[9px] font-bold text-emerald-400 active:scale-95 transition-all cursor-pointer"
-                                            >
-                                              Release Milestone
-                                            </button>
-                                            {!m.is_disputed && (
-                                              <button
-                                                type="button"
-                                                onClick={() => handleDisputeMilestone(tx.id, mIdx)}
-                                                className="h-7 px-2.5 rounded-lg bg-red-500/20 hover:bg-red-500/35 border border-red-500/40 hover:border-red-500/60 text-[9px] font-bold text-red-400 active:scale-95 transition-all cursor-pointer"
-                                              >
-                                                Flag Dispute
-                                              </button>
-                                            )}
-                                          </>
-                                        )}
-                                        {userRole === "mediator" && (
-                                          <>
-                                            <button
-                                              type="button"
-                                              onClick={() => handleReleaseMilestone(tx.id, mIdx)}
-                                              className="h-7 px-2.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/35 border border-indigo-500/40 hover:border-indigo-500/60 text-[9px] font-bold text-indigo-400 active:scale-95 transition-all cursor-pointer"
-                                            >
-                                              Resolve: Release
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => handleRefundEscrow(tx.id)}
-                                              className="h-7 px-2.5 rounded-lg bg-red-500/20 hover:bg-red-500/35 border border-red-500/40 hover:border-red-500/60 text-[9px] font-bold text-red-400 active:scale-95 transition-all cursor-pointer"
-                                            >
-                                              Resolve: Refund
-                                            </button>
-                                          </>
-                                        )}
-                                        {userRole === "auto" && m.submitted_at > 0 && !m.is_disputed && (
-                                          <button
-                                            type="button"
-                                            onClick={() => handleAutoReleaseMilestone(tx.id, mIdx)}
-                                            className="h-7 px-2.5 rounded-lg bg-violet-500/20 hover:bg-violet-500/35 border border-violet-500/40 hover:border-violet-500/60 text-[9px] font-bold text-violet-400 active:scale-95 transition-all cursor-pointer"
-                                          >
-                                            Trigger Auto-Release
-                                          </button>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-
-                            {/* Refund button: visible for expired escrows (or simulated expired) with pending milestones */}
-                            {tx.isExpired && tx.milestones.some((m) => !m.is_completed) && (
-                              <div className="pt-1 flex justify-end">
-                                <button
-                                  type="button"
-                                  onClick={() => handleRefundEscrow(tx.id)}
-                                  className="h-8 px-3 rounded-xl bg-red-950/40 hover:bg-red-950/60 border border-red-500/30 text-[9px] font-bold text-red-400 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
-                                >
-                                  <AlertCircle className="w-3.5 h-3.5" />
-                                  Refund Expired Escrow
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                <p className="text-xs text-slate-400 max-w-[240px] mx-auto leading-relaxed">
+                  Sign payload inside extension and wait for confirmation.
+                </p>
               </div>
             </div>
           )}
 
-          {/* TAB 3: SETTINGS PANEL */}
-          {activeTab === "settings" && (
-            <div className="space-y-5">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
-                App Settings
-              </h3>
+          {/* Success screen card + particle burst */}
+          {txStatus === "success" && (
+            <div className="p-6 rounded-2xl glass-card border-teal-500/20 text-center space-y-5 animate-pulse-glow relative flex flex-col items-center" data-testid="tx-success-block">
+              <div className="relative w-16 h-16 flex items-center justify-center">
+                {renderParticles()}
+                <div className="w-14 h-14 rounded-full bg-teal-500/10 border border-teal-500/30 flex items-center justify-center z-10">
+                  <CheckCircle2 className="w-8 h-8 text-teal-400" />
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-slate-100 font-display">Payment Transmitted!</h3>
+                <p className="text-xs text-slate-400">Your transaction has been processed on Testnet.</p>
+              </div>
 
-              {/* Network Config */}
-              <div className="p-4 rounded-xl bg-space-900/40 border border-space-700/20 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-200">Network Environment</p>
-                    <p className="text-[10px] text-slate-400">Current active blockchain rail</p>
+              {/* Summary card */}
+              <div className="w-full bg-space-950/60 p-4 rounded-xl border border-space-850 space-y-2 text-xs font-mono text-left">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Amount:</span>
+                  <span className="text-slate-100 font-bold">{amount || "Routed"} XLM</span>
+                </div>
+                {recipient && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Recipient:</span>
+                    <span className="text-slate-100 truncate max-w-[140px]">{recipient}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
-                    {network}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 pt-1">
-                  {["Testnet", "Futurenet", "Local"].map((net) => (
-                    <button
-                      key={net}
-                      type="button"
-                      onClick={() => setNetwork(net)}
-                      className={`h-8 rounded-lg text-[10px] font-bold border transition-all ${
-                        network === net
-                          ? "bg-primary-indigo/10 border-primary-indigo/40 text-primary-indigo"
-                          : "bg-space-950/40 border-space-800 text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      {net}
-                    </button>
-                  ))}
-                </div>
+                )}
+                {txHash && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">TX Hash:</span>
+                    <span className="text-teal-400 font-bold">{txHash.slice(0, 8)}...{txHash.slice(-8)}</span>
+                  </div>
+                )}
               </div>
 
-              {/* Slippage Settings */}
-              <div className="p-4 rounded-xl bg-space-900/40 border border-space-700/20 space-y-3">
-                <div>
-                  <p className="text-xs font-semibold text-slate-200">Slippage Tolerance</p>
-                  <p className="text-[10px] text-slate-400">Allowed trade price impact percentage</p>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {["0.5", "1.0", "3.0"].map((val) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setSlippage(val)}
-                      className={`h-8 rounded-lg text-[10px] font-bold border transition-all ${
-                        slippage === val
-                          ? "bg-primary-indigo/10 border-primary-indigo/40 text-primary-indigo"
-                          : "bg-space-950/40 border-space-800 text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      {val}%
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2 pt-2 border-t border-space-850">
-                  <span className="text-[10px] text-slate-400">Custom Slippage:</span>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    max="50"
-                    value={["0.5", "1.0", "3.0"].includes(slippage) ? "" : slippage}
-                    onChange={(e) => setSlippage(e.target.value || "1.0")}
-                    placeholder="Custom %"
-                    className="w-20 h-7 px-2 text-[10px] rounded bg-space-950 border border-space-800 text-slate-200 focus:outline-none focus:border-primary-indigo"
-                  />
-                  <span className="text-[10px] text-slate-400">%</span>
-                </div>
-              </div>
-
-              {/* AI assist switch */}
-              <div className="p-4 rounded-xl bg-space-900/40 border border-space-700/20 flex items-center justify-between">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-slate-200">AI Intent Assist</p>
-                  <p className="text-[10px] text-slate-400">Plain text payment commands parsing</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsAiEnabled(!isAiEnabled)}
-                  className={`w-11 h-6 rounded-full p-1 transition-all duration-300 relative ${
-                    isAiEnabled ? "bg-primary-indigo" : "bg-space-800 border border-space-700/40"
-                  }`}
+              {txHash && (
+                <a
+                  href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-10 rounded-xl bg-space-800 hover:bg-space-850 border border-space-700/40 text-xs font-bold text-slate-200 flex items-center justify-center gap-1.5 transition-all focus-ring"
                 >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-all shadow ${
-                      isAiEnabled ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
+                  View on StellarExplorer
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
 
-              {/* Versioning and developer tags */}
-              <div className="text-center text-[10px] text-slate-500 pt-4 font-mono space-y-1">
-                <p>Aethyr Client v0.1.0 (Alpha)</p>
-                <p>Designed for Stellar JTM</p>
-              </div>
-
+              <button
+                onClick={() => {
+                  setTxStatus("idle");
+                  setRecipient("");
+                  setAmount("");
+                }}
+                className="text-xs font-bold text-teal-400 hover:text-teal-300 transition-colors focus-ring"
+              >
+                Back to Send Form
+              </button>
             </div>
+          )}
+
+          {/* Failed transaction status overlay card */}
+          {txStatus === "failed" && (
+            <div className="p-6 rounded-2xl border border-red-500/20 bg-red-500/5 text-center space-y-4" data-testid="tx-failed-block">
+              <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto">
+                <XCircle className="w-6 h-6 text-red-400" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-slate-200">Transaction Failed</h3>
+                <p className="text-xs text-red-400/95 max-w-[280px] mx-auto font-mono px-3 py-2 rounded bg-red-950/20 border border-red-900/30 text-left overflow-x-auto whitespace-pre-wrap">
+                  {txError}
+                </p>
+              </div>
+              <button
+                onClick={() => setTxStatus("idle")}
+                className="text-xs text-slate-400 hover:text-slate-200 font-semibold underline transition-colors cursor-pointer"
+              >
+                Dismiss and return
+              </button>
+            </div>
+          )}
+
+          {/* TAB 1: SEND / SWAP */}
+          {activeTab === "send" && txStatus === "idle" && (
+            <SendTab
+              balance={balance}
+              recipient={recipient}
+              setRecipient={setRecipient}
+              amount={amount}
+              setAmount={setAmount}
+              isRouted={isRouted}
+              setIsRouted={setIsRouted}
+              sendLoading={sendLoading}
+              txStatus={txStatus}
+              setTxStatus={setTxStatus}
+              handleSend={handleSend}
+              isAiEnabled={isAiEnabled}
+              showToast={showToast}
+              slippage={slippage}
+              connect={() => setIsWalletPickerOpen(true)}
+              isConnected={isConnected}
+            />
+          )}
+
+          {/* TAB 2: ESCROW MILESTONES (NEW) */}
+          {activeTab === "escrow" && txStatus === "idle" && (
+            <EscrowTab
+              balance={balance}
+              isConnected={isConnected}
+              connect={() => setIsWalletPickerOpen(true)}
+              transactions={transactions}
+              expandedEscrows={expandedEscrows}
+              toggleEscrowExpand={toggleEscrowExpand}
+              userRole={userRole}
+              setUserRole={setUserRole}
+              handleSubmitMilestone={handleSubmitWork}
+              handleReleaseMilestone={handleRelease}
+              handleDisputeMilestone={handleDispute}
+              handleAutoReleaseMilestone={handleAutoRelease}
+              handleRefundEscrow={handleRefund}
+              onCreateEscrow={onCreateEscrow}
+              showToast={showToast}
+            />
+          )}
+
+          {/* TAB 3: ACTIVITY FEED */}
+          {activeTab === "activity" && txStatus === "idle" && (
+            <ActivityTab transactions={transactions} />
+          )}
+
+          {/* TAB 4: SETTINGS PANEL */}
+          {activeTab === "settings" && txStatus === "idle" && (
+            <SettingsTab
+              network={network}
+              setNetwork={setNetwork}
+              slippage={slippage}
+              setSlippage={setSlippage}
+              isAiEnabled={isAiEnabled}
+              setIsAiEnabled={setIsAiEnabled}
+            />
           )}
 
         </main>
@@ -1154,28 +668,10 @@ export default function Dashboard() {
         {/* Bottom Navigation */}
         <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
 
-        {/* Toast Notifications Container */}
-        <div className="absolute bottom-[calc(5.5rem+var(--sab))] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2 pointer-events-none w-full max-w-[320px] px-4">
-          {toasts.map((toast) => (
-            <div
-              key={toast.id}
-              className={`p-3 rounded-xl shadow-lg border text-[10px] font-semibold flex items-center gap-2 pointer-events-auto backdrop-blur-md transition-all duration-300 animate-slide-in ${
-                toast.type === "success"
-                  ? "bg-emerald-950/85 border-emerald-500/20 text-slate-100 shadow-emerald-500/5"
-                  : toast.type === "error"
-                  ? "bg-red-950/85 border-red-500/20 text-slate-100 shadow-red-500/5"
-                  : "bg-space-900/85 border-space-700/20 text-slate-100"
-              }`}
-            >
-              {toast.type === "success" && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
-              {toast.type === "error" && <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />}
-              {toast.type === "info" && <AlertCircle className="w-3.5 h-3.5 text-primary-indigo shrink-0" />}
-              <span>{toast.message}</span>
-            </div>
-          ))}
-        </div>
+        {/* Custom Toast Notifications Container */}
+        <ToastContainer toasts={toasts} onDismiss={handleDismissToast} />
 
-        {/* Slide-out Profile Drawer */}
+        {/* Slide-up Profile Bottom Sheet */}
         <ProfileDrawer
           isOpen={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
@@ -1183,6 +679,13 @@ export default function Dashboard() {
           balance={balance}
           disconnect={disconnect}
           isLoading={walletLoading}
+        />
+
+        {/* Custom Wallet Picker Bottom Sheet */}
+        <WalletPickerBottomSheet
+          isOpen={isWalletPickerOpen}
+          onClose={() => setIsWalletPickerOpen(false)}
+          onSelectWallet={handleSelectWallet}
         />
 
       </div>

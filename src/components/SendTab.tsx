@@ -68,7 +68,7 @@ export default function SendTab({
       const parsed = parseAiIntent(aiInput);
       if (parsed.recipient) setRecipient(parsed.recipient);
       if (parsed.amount) setAmount(parsed.amount);
-      if (parsed.type === "swap" || parsed.type === "escrow") {
+      if (parsed.type === "escrow") {
         setIsRouted(true);
       } else {
         setIsRouted(false);
