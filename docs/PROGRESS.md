@@ -90,6 +90,7 @@ Status: "Completed"
 ## 📜 Audit Logs
 
 ### 2026-07-10
+- **Builder**: Fixed Freighter wallet reconnection issue by replacing the cache-based `getAddress` call with connection-prompting `fetchAddress` in `useStellarWallet.ts`. Verified that all 55 Vitest unit tests pass and recorded commit `8ca87aa`.
 - **Builder**: Fixed layout collapse on `InlineConfirmationButton` by dynamically merging base structural classes and overriding only the color/interaction states when confirmation state is active using the `cn` class utility. Updated `ConfirmationDialog.test.tsx` with corresponding assertions.
 - **Checker**: Completed audit for "Audit: AI Assist Hover Scale Removal" task. Verified all 11 cargo contract tests pass and all 55 frontend tests ('npm run test') pass. Verified local dev server is active on `http://localhost:3000`. Executed Playwright UI audit verification on mobile viewport (390x844), confirming that the AI Assist container height transitions smoothly when expanding/collapsing, and verified that there are no hover/tap scale effects on the 'Collapse' / 'Expand' toggle span or the 'Parse Command' button. Screenshots saved to `test-results/screenshots/`. Active task status updated to 'Audit Passed'.
 - **Builder**: Removed hover/tap scale transitions from the Expand/Collapse span and Parse Command button in SendTab.tsx, converting them to standard HTML elements to eliminate float hover scale transitions on interactive controls. Verified that all 55 Vitest unit tests pass and ESLint runs cleanly.
