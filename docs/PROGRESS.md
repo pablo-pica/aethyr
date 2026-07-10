@@ -7,7 +7,7 @@ This is a living document updated autonomously by agents at the end of each task
 ## ⚡ Active Task
 
 ```yaml
-Current Task: "Redesign Bug Fixes & Milestone Resplit"
+Current Task: "Fix ActivityTab Choppy Animation"
 Assigned Agent: Builder
 Status: "Completed"
 ```
@@ -92,6 +92,8 @@ Status: "Completed"
 ## 📜 Audit Logs
 
 ### 2026-07-10
+- **Builder**: Refactored expanded details motion.div in ActivityTab.tsx to prevent layout jumps by moving layout/design padding, border, and typography classes into an inner wrapper div, keeping the animation smooth.
+- **Checker**: Completed full audit for 'Redesign Bug Fixes & Milestone Resplit' task. Verified all 11 cargo contract tests pass successfully (7 in aethyr-escrow, 4 in aethyr-router) and all 55 frontend tests ('npm run test') pass. Verified next dev server on port 3000 is active. Ran Playwright mobile viewport (390x844) test asserting that the header, active tabs ('Send', 'Escrow', 'Activity', 'Settings') are functional, and that selecting settings custom slippage tolerance displays correctly. Screenshots updated in `docs/assets/`. Active Task status set to 'Audit Passed'.
 - **Builder**: Completed frontend bug fixes and improvements task "Redesign Bug Fixes & Milestone Resplit":
   1. Expanded MilestoneBuilder container scroll max-height to 340px and added smooth auto-scroll-into-view on drawer toggle open.
   2. Replaced `transition-all` with `transition-[border-color,background-color] duration-200` in ActivityTab and EscrowTab cards to avoid Framer Motion height interpolation collisions.

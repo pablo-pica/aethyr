@@ -211,45 +211,47 @@ export default function ActivityTab({
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.25, ease: "easeInOut" }}
-                        className="overflow-hidden mt-3 pt-3 border-t border-space-800/80 space-y-2.5 text-[10px] font-mono text-slate-300"
+                        className="overflow-hidden"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {tx.senderAddress && (
-                          <div className="flex justify-between items-center gap-2">
-                            <span className="text-slate-500">From:</span>
-                            <span className="truncate max-w-[200px]" title={tx.senderAddress}>
-                              {tx.senderAddress}
-                            </span>
-                          </div>
-                        )}
-                        {tx.receiverAddress && (
-                          <div className="flex justify-between items-center gap-2">
-                            <span className="text-slate-500">To:</span>
-                            <span className="truncate max-w-[200px]" title={tx.receiverAddress}>
-                              {tx.receiverAddress}
-                            </span>
-                          </div>
-                        )}
-                        {tx.escrowContract && (
-                          <div className="flex justify-between items-center gap-2">
-                            <span className="text-slate-500">Escrow:</span>
-                            <span className="truncate max-w-[200px]" title={tx.escrowContract}>
-                              {tx.escrowContract}
-                            </span>
-                          </div>
-                        )}
-                        {tx.txHash && (
-                          <div className="pt-1.5 flex justify-end">
-                            <a
-                              href={`https://stellar.expert/explorer/testnet/tx/${tx.txHash}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 h-7 px-2.5 rounded bg-space-800 hover:bg-space-700 border border-space-700/50 text-[9px] font-semibold text-teal-400 transition-colors"
-                            >
-                              <span>Explorer ↗</span>
-                            </a>
-                          </div>
-                        )}
+                        <div className="pt-3 border-t border-space-800/80 space-y-2.5 text-[10px] font-mono text-slate-300">
+                          {tx.senderAddress && (
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="text-slate-500">From:</span>
+                              <span className="truncate max-w-[200px]" title={tx.senderAddress}>
+                                {tx.senderAddress}
+                              </span>
+                            </div>
+                          )}
+                          {tx.receiverAddress && (
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="text-slate-500">To:</span>
+                              <span className="truncate max-w-[200px]" title={tx.receiverAddress}>
+                                {tx.receiverAddress}
+                              </span>
+                            </div>
+                          )}
+                          {tx.escrowContract && (
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="text-slate-500">Escrow:</span>
+                              <span className="truncate max-w-[200px]" title={tx.escrowContract}>
+                                {tx.escrowContract}
+                              </span>
+                            </div>
+                          )}
+                          {tx.txHash && (
+                            <div className="pt-1.5 flex justify-end">
+                              <a
+                                href={`https://stellar.expert/explorer/testnet/tx/${tx.txHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 h-7 px-2.5 rounded bg-space-800 hover:bg-space-700 border border-space-700/50 text-[9px] font-semibold text-teal-400 transition-colors"
+                              >
+                                <span>Explorer ↗</span>
+                              </a>
+                            </div>
+                          )}
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
