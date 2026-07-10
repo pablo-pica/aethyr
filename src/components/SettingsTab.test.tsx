@@ -20,6 +20,7 @@ describe("SettingsTab Component Layout & Configuration Tests", () => {
     // Slippage controls check
     expect(fileContent).toContain("Slippage Tolerance");
     expect(fileContent).toContain("CustomNumberInput");
+    expect(fileContent).toContain('setSlippage("2.0")');
 
     // AI toggle checks (48x28px wrapper / touch targets)
     expect(fileContent).toContain("minWidth: \"48px\"");

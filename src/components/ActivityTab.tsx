@@ -149,7 +149,7 @@ export default function ActivityTab({
                 key={tx.id}
                 variants={itemVariants}
                 onClick={() => toggleExpand(tx.id)}
-                className="relative rounded-xl glass-card hover:border-teal-500/25 transition-all overflow-hidden flex flex-col cursor-pointer text-left focus-ring"
+                className="relative rounded-xl glass-card hover:border-teal-500/25 transition-[border-color,background-color] duration-200 overflow-hidden flex flex-col cursor-pointer text-left focus-ring"
                 data-testid={`tx-card-${tx.id}`}
               >
                 {/* Left side indicator bar */}

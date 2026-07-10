@@ -7,9 +7,9 @@ This is a living document updated autonomously by agents at the end of each task
 ## ⚡ Active Task
 
 ```yaml
-Current Task: "Milestone Editor Vertical Expand Overhaul"
-Assigned Agent: Checker
-Status: "Audit Passed"
+Current Task: "Redesign Bug Fixes & Milestone Resplit"
+Assigned Agent: Builder
+Status: "Completed"
 ```
 
 ---
@@ -92,6 +92,13 @@ Status: "Audit Passed"
 ## 📜 Audit Logs
 
 ### 2026-07-10
+- **Builder**: Completed frontend bug fixes and improvements task "Redesign Bug Fixes & Milestone Resplit":
+  1. Expanded MilestoneBuilder container scroll max-height to 340px and added smooth auto-scroll-into-view on drawer toggle open.
+  2. Replaced `transition-all` with `transition-[border-color,background-color] duration-200` in ActivityTab and EscrowTab cards to avoid Framer Motion height interpolation collisions.
+  3. Fixed custom slippage selection by setting slippage default float string to '2.0' when "Custom" is selected.
+  4. Relocated mediator / client / freelancer action buttons vertically below milestone details with margin and right-alignment in EscrowTab.
+  5. Implemented auto-resplitting / auto-balancing of milestone weights on add/remove events using balanceMilestones logic.
+  6. Updated all Vitest test suites and verified that 100% of 55 tests pass and compilation succeeds.
 - **Checker**: Completed compliance audit for the active task 'Milestone Editor Vertical Expand Overhaul'. Verified 11/11 Soroban smart contract tests (`cargo test`) in `contracts/aethyr-router` and 55/55 frontend unit/integration tests (`npm run test`) pass successfully. Verified `npm run lint` and `npm run build` run successfully with no warnings/errors. Confirmed git logs contain 93 commits (well above 10+ target). Active task checked and static tests verified successfully, pending Playwright browser UI validation.
 - **Builder**: Implemented vertical expand-reveal panel in MilestoneBuilder and updated tests:
   1. Updated MilestoneRow to stack description and control panel vertically.

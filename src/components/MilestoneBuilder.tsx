@@ -38,9 +38,16 @@ function MilestoneRow({
   onRemove,
 }: MilestoneRowProps) {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+  const rowRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (isDrawerOpen && rowRef.current) {
+      rowRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [isDrawerOpen]);
 
   return (
-    <div className="flex flex-col py-2 border-b border-space-800/80 last:border-b-0">
+    <div ref={rowRef} className="flex flex-col py-2 border-b border-space-800/80 last:border-b-0">
       <div className="flex gap-2 items-center">
         {/* Index number */}
         <span className="text-xs font-mono text-slate-500 w-5 text-right shrink-0">{index}.</span>
@@ -155,14 +162,12 @@ export default function MilestoneBuilder({
       submitted_at: 0,
     };
     const updated = [...milestones, newMilestone];
-    const remainingBps = Math.max(0, 10000 - totalBps);
-    updated[updated.length - 1].payout_weight = remainingBps;
-    onChange(updated);
+    onChange(balanceMilestones(updated));
   };
 
   const handleRemoveMilestone = (index: number) => {
     const updated = milestones.filter((_, i) => i !== index);
-    onChange(updated);
+    onChange(balanceMilestones(updated));
   };
 
   const handleAutoBalance = () => {
@@ -214,7 +219,7 @@ export default function MilestoneBuilder({
         })}
       </div>
 
-      <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+      <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
         {milestones.length === 0 ? (
           <p className="text-xs text-slate-500 text-center py-4">No milestones defined. Add one below.</p>
         ) : (

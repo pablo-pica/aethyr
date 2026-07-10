@@ -298,7 +298,7 @@ export default function EscrowTab({
                     return (
                       <div
                         key={escrow.id}
-                        className="rounded-2xl glass-card overflow-hidden hover:border-teal-500/25 transition-all duration-300"
+                        className="rounded-2xl glass-card overflow-hidden hover:border-teal-500/25 transition-[border-color,background-color] duration-200"
                         data-testid={`escrow-card-${escrow.id}`}
                       >
                         {/* Expandable Header */}
@@ -373,87 +373,87 @@ export default function EscrowTab({
 
                                     const status = getMilestoneStatus();
 
-                                    return (
-                                      <div
-                                        key={idx}
-                                        className="relative flex items-center justify-between gap-4 group"
-                                        data-testid={`milestone-card-${idx}`}
-                                      >
-                                        {/* State-colored glowing dot indicator */}
-                                        <div className="absolute -left-[31px] top-1 flex items-center justify-center">
-                                          <span className={`w-3.5 h-3.5 rounded-full ${status.dotColor} border-2 border-space-950 transition-all`} />
-                                        </div>
-
-                                        {/* Milestone details (ledger content) */}
-                                        <div className="flex-1 space-y-1 min-w-0">
-                                          <p className="text-xs font-bold text-slate-200 truncate">{m.description}</p>
-                                          <div className="flex items-center gap-1.5 text-[9px] font-mono text-slate-400">
-                                            <span>Weight: {m.payout_weight / 100}%</span>
-                                            <span className="w-1 h-1 rounded-full bg-space-700" />
-                                            <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${status.colorClass}`}>
-                                              {status.text}
-                                            </span>
+                                      return (
+                                        <div
+                                          key={idx}
+                                          className="relative flex flex-col gap-1 group text-left"
+                                          data-testid={`milestone-card-${idx}`}
+                                        >
+                                          {/* State-colored glowing dot indicator */}
+                                          <div className="absolute -left-[31px] top-1 flex items-center justify-center">
+                                            <span className={`w-3.5 h-3.5 rounded-full ${status.dotColor} border-2 border-space-950 transition-all`} />
                                           </div>
-                                        </div>
 
-                                        {/* Milestone Actions with tiered inline confirmation */}
-                                        {!isCompleted && (
-                                          <div className="flex items-center gap-2 shrink-0">
-                                            {userRole === "freelancer" && !isDisputed && !isSubmitted && (
-                                              <InlineConfirmationButton
-                                                actionText="Submit Work"
-                                                confirmText="Confirm Submit?"
-                                                onConfirm={() => handleSubmitMilestone(escrow.id, idx)}
-                                                className="h-8 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-[10px] font-bold text-cyan-400 cursor-pointer"
-                                              />
-                                            )}
+                                          {/* Milestone details (ledger content) */}
+                                          <div className="flex-1 space-y-1 min-w-0">
+                                            <p className="text-xs font-bold text-slate-200 truncate">{m.description}</p>
+                                            <div className="flex items-center gap-1.5 text-[9px] font-mono text-slate-400">
+                                              <span>Weight: {m.payout_weight / 100}%</span>
+                                              <span className="w-1 h-1 rounded-full bg-space-700" />
+                                              <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${status.colorClass}`}>
+                                                {status.text}
+                                              </span>
+                                            </div>
+                                          </div>
 
-                                            {userRole === "client" && (
-                                              <>
+                                          {/* Milestone Actions with tiered inline confirmation */}
+                                          {!isCompleted && (
+                                            <div className="flex items-center gap-2 mt-2 justify-end">
+                                              {userRole === "freelancer" && !isDisputed && !isSubmitted && (
                                                 <InlineConfirmationButton
-                                                  actionText="Release Funds"
-                                                  confirmText="Confirm Release?"
-                                                  onConfirm={() => handleReleaseMilestone(escrow.id, idx)}
-                                                  className="h-8 px-3 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-[10px] font-bold text-teal-400 cursor-pointer"
+                                                  actionText="Submit Work"
+                                                  confirmText="Confirm Submit?"
+                                                  onConfirm={() => handleSubmitMilestone(escrow.id, idx)}
+                                                  className="h-8 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-[10px] font-bold text-cyan-400 cursor-pointer"
                                                 />
-                                                {!isDisputed && (
+                                              )}
+
+                                              {userRole === "client" && (
+                                                <>
                                                   <InlineConfirmationButton
-                                                    actionText="Flag Dispute"
-                                                    confirmText="Confirm Dispute?"
-                                                    onConfirm={() => handleDisputeMilestone(escrow.id, idx)}
-                                                    className="h-8 px-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-400 cursor-pointer"
+                                                    actionText="Release Funds"
+                                                    confirmText="Confirm Release?"
+                                                    onConfirm={() => handleReleaseMilestone(escrow.id, idx)}
+                                                    className="h-8 px-3 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-[10px] font-bold text-teal-400 cursor-pointer"
                                                   />
-                                                )}
-                                              </>
-                                            )}
+                                                  {!isDisputed && (
+                                                    <InlineConfirmationButton
+                                                      actionText="Flag Dispute"
+                                                      confirmText="Confirm Dispute?"
+                                                      onConfirm={() => handleDisputeMilestone(escrow.id, idx)}
+                                                      className="h-8 px-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-400 cursor-pointer"
+                                                    />
+                                                  )}
+                                                </>
+                                              )}
 
-                                            {userRole === "mediator" && (
-                                              <>
-                                                <InlineConfirmationButton
-                                                  actionText="Resolve: Release"
-                                                  confirmText="Confirm Resolve Release?"
-                                                  onConfirm={() => handleReleaseMilestone(escrow.id, idx)}
-                                                  className="h-8 px-3 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-[10px] font-bold text-purple-400 cursor-pointer"
-                                                />
-                                                <InlineConfirmationButton
-                                                  actionText="Resolve: Refund"
-                                                  confirmText="Confirm Resolve Refund?"
-                                                  onConfirm={() => handleRefundEscrow(escrow.id)}
-                                                  className="h-8 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-[10px] font-bold text-red-400 cursor-pointer"
-                                                />
-                                              </>
-                                            )}
+                                              {userRole === "mediator" && (
+                                                <>
+                                                  <InlineConfirmationButton
+                                                    actionText="Resolve: Release"
+                                                    confirmText="Confirm Resolve Release?"
+                                                    onConfirm={() => handleReleaseMilestone(escrow.id, idx)}
+                                                    className="h-8 px-3 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-[10px] font-bold text-purple-400 cursor-pointer"
+                                                  />
+                                                  <InlineConfirmationButton
+                                                    actionText="Resolve: Refund"
+                                                    confirmText="Confirm Resolve Refund?"
+                                                    onConfirm={() => handleRefundEscrow(escrow.id)}
+                                                    className="h-8 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-[10px] font-bold text-red-400 cursor-pointer"
+                                                  />
+                                                </>
+                                              )}
 
-                                            {userRole === "auto" && isSubmitted && !isDisputed && (
-                                              <InlineConfirmationButton
-                                                actionText="Trigger Auto-Release"
-                                                confirmText="Confirm Auto-Release?"
-                                                onConfirm={() => handleAutoReleaseMilestone(escrow.id, idx)}
-                                                className="h-8 px-3 rounded-lg bg-slate-500/10 hover:bg-slate-500/20 border border-slate-500/30 text-[10px] font-bold text-slate-400 cursor-pointer"
-                                              />
-                                            )}
-                                          </div>
-                                        )}
+                                              {userRole === "auto" && isSubmitted && !isDisputed && (
+                                                <InlineConfirmationButton
+                                                  actionText="Trigger Auto-Release"
+                                                  confirmText="Confirm Auto-Release?"
+                                                  onConfirm={() => handleAutoReleaseMilestone(escrow.id, idx)}
+                                                  className="h-8 px-3 rounded-lg bg-slate-500/10 hover:bg-slate-500/20 border border-slate-500/30 text-[10px] font-bold text-slate-400 cursor-pointer"
+                                                />
+                                              )}
+                                            </div>
+                                          )}
                                       </div>
                                     );
                                   })}

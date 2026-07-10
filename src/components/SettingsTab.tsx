@@ -71,7 +71,9 @@ export default function SettingsTab({
         <SegmentedControl
           value={isCustomSlippage ? "Custom" : slippage}
           onChange={(val) => {
-            if (val !== "Custom") {
+            if (val === "Custom") {
+              setSlippage("2.0");
+            } else {
               setSlippage(val);
             }
           }}

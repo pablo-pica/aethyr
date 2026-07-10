@@ -54,6 +54,9 @@ describe("MilestoneBuilder Component Tests", () => {
     expect(fileContent).toContain("onClose?: () => void;");
     expect(fileContent).toContain("onClick={() => onClose?.()}");
     expect(fileContent).toContain("Apply Milestones");
+
+    // Auto-resplitting checks
+    expect(fileContent).toContain("onChange(balanceMilestones(updated))");
   });
 
   it("should have clean and compact scroll container style", () => {
@@ -61,7 +64,7 @@ describe("MilestoneBuilder Component Tests", () => {
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
     // Clean scrollbar settings
-    expect(fileContent).toContain("space-y-2 max-h-[220px] overflow-y-auto pr-1");
+    expect(fileContent).toContain("space-y-2 max-h-[340px] overflow-y-auto pr-1");
   });
 
   it("should verify the SlidersHorizontal toggle behavior and drawer container layout", () => {
