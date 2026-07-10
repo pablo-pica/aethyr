@@ -23,5 +23,8 @@ describe("ConfirmationDialog & InlineConfirmationButton Tests", () => {
     expect(fileContent).toContain("isConfirming");
     expect(fileContent).toContain("setIsConfirming");
     expect(fileContent).toContain("setTimeout");
+    expect(fileContent).toContain("cn(");
+    expect(fileContent).toContain("isConfirming &&");
   });
 });
+

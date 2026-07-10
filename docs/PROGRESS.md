@@ -5,7 +5,7 @@ This is a living document updated autonomously by agents at the end of each task
 ## ⚡ Active Task
 
 ```yaml
-Current Task: "AI Assist Hover Scale Removal"
+Current Task: "Fix: Inline Confirmation Button Layout Collapse"
 Assigned Agent: Builder
 Status: "Completed"
 ```
@@ -90,6 +90,8 @@ Status: "Completed"
 ## 📜 Audit Logs
 
 ### 2026-07-10
+- **Builder**: Fixed layout collapse on `InlineConfirmationButton` by dynamically merging base structural classes and overriding only the color/interaction states when confirmation state is active using the `cn` class utility. Updated `ConfirmationDialog.test.tsx` with corresponding assertions.
+- **Checker**: Completed audit for "Audit: AI Assist Hover Scale Removal" task. Verified all 11 cargo contract tests pass and all 55 frontend tests ('npm run test') pass. Verified local dev server is active on `http://localhost:3000`. Executed Playwright UI audit verification on mobile viewport (390x844), confirming that the AI Assist container height transitions smoothly when expanding/collapsing, and verified that there are no hover/tap scale effects on the 'Collapse' / 'Expand' toggle span or the 'Parse Command' button. Screenshots saved to `test-results/screenshots/`. Active task status updated to 'Audit Passed'.
 - **Builder**: Removed hover/tap scale transitions from the Expand/Collapse span and Parse Command button in SendTab.tsx, converting them to standard HTML elements to eliminate float hover scale transitions on interactive controls. Verified that all 55 Vitest unit tests pass and ESLint runs cleanly.
 - **Builder**: Updated the AI Smart Strip styles in SendTab.tsx to apply the hover transitions directly to the entire outer container capsule card and removed the hover background, hover border, and hover shadow styling from the toggle button itself to create a unified capsule hover state and prevent rendering overlaps.
 - **Checker**: Successfully completed the audit for "Audit: AI Assist Accordion Animation in SendTab". Verified 11/11 Soroban smart contract tests (`cargo test`) and 55/55 frontend unit/integration tests (`npm run test`) pass. Ran Playwright browser verification on local dev server `http://localhost:3000` with 390x844 mobile viewport, confirming smooth accordion animation transitions on SendTab's AI Assist panel and ActivityTab's transaction card, and verified that the Sparkles icon on the header uses `animate-pulse-glow`.

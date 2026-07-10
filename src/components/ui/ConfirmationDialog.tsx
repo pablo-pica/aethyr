@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+
 
 // Modal-based Confirmation
 interface ConfirmationDialogProps {
@@ -172,11 +174,11 @@ export function InlineConfirmationButton({
       type="button"
       disabled={disabled}
       onClick={handleClick}
-      className={`transition-all active:scale-[0.98] focus-ring cursor-pointer select-none ${
-        isConfirming
-          ? "bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold"
-          : className
-      }`}
+      className={cn(
+        "transition-all active:scale-[0.98] focus-ring cursor-pointer select-none",
+        className,
+        isConfirming && "bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold hover:bg-amber-500/30 hover:text-amber-300 hover:border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.15)]"
+      )}
       data-testid="inline-confirm-btn"
     >
       {displayText}
