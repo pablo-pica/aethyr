@@ -68,14 +68,14 @@ export function parseTransactionEvents(result: any) {
     return;
   }
   try {
-    const meta = xdr.TransactionMeta.fromXDR(result.resultMetaXdr, "base64");
+    const meta = xdr.TransactionMeta.fromXDR(result.resultMetaXdr, "base64") as any;
     let sorobanMeta;
     if (meta.switch() === 3) {
       sorobanMeta = meta.v3().sorobanMeta();
     } else if (meta.switch() === 4) {
-      sorobanMeta = meta.value().sorobanMeta();
+      sorobanMeta = meta.v4?.()?.sorobanMeta?.() || meta.value?.()?.sorobanMeta?.();
     } else {
-      sorobanMeta = (meta as any).value?.()?.sorobanMeta?.();
+      sorobanMeta = meta.value?.()?.sorobanMeta?.();
     }
     if (!sorobanMeta) return;
 
@@ -666,15 +666,15 @@ export function useStellarWallet() {
       
       let escrowId = "";
       try {
-        if (txResult.result && txResult.result.resultMetaXdr) {
-          const meta = xdr.TransactionMeta.fromXDR(txResult.result.resultMetaXdr, "base64");
+        if (txResult.result && (txResult.result as any).resultMetaXdr) {
+          const meta = xdr.TransactionMeta.fromXDR((txResult.result as any).resultMetaXdr, "base64") as any;
           let sorobanMeta;
           if (meta.switch() === 3) {
             sorobanMeta = meta.v3().sorobanMeta();
           } else if (meta.switch() === 4) {
-            sorobanMeta = meta.value().sorobanMeta();
+            sorobanMeta = meta.v4?.()?.sorobanMeta?.() || meta.value?.()?.sorobanMeta?.();
           } else {
-            sorobanMeta = (meta as any).value?.()?.sorobanMeta?.();
+            sorobanMeta = meta.value?.()?.sorobanMeta?.();
           }
           if (sorobanMeta) {
             const returnValue = sorobanMeta.returnValue();
