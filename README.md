@@ -38,8 +38,8 @@ Traditional international remittance networks impose significant overhead throug
   * **Address**: [`CA4IPUOL5U5T7LBZRGM476BSJPN2KQUW6D4AVSYDJK2RMVY6EAS7ONQR`](https://stellar.expert/explorer/testnet/contract/CA4IPUOL5U5T7LBZRGM476BSJPN2KQUW6D4AVSYDJK2RMVY6EAS7ONQR)
   * **Deployment Tx**: [`e0502cb2c64f17...`](https://stellar.expert/explorer/testnet/tx/e0502cb2c64f17161d8492737ee5a657481c1cc86671d49ba61bd6de7b5ab035)
 * 🔐 **Aethyr Escrow Contract** — Milestone escrow contract invoked by Router.
-  * **Address**: [`CCJ7DVF32OZI5KTUOQPY5JIJJVK2HYU7YTOW6QMNIMAVIBMU77T7GNPM`](https://stellar.expert/explorer/testnet/contract/CCJ7DVF32OZI5KTUOQPY5JIJJVK2HYU7YTOW6QMNIMAVIBMU77T7GNPM)
-  * **Deployment Tx**: [`18913ea4d46d2f...`](https://stellar.expert/explorer/testnet/tx/18913ea4d46d2f6f13d101d64674dae7a437480d23851301565a27c6b68251e2)
+  * **Address**: [`CAZYRJXKZXTXJKTYVWCRD5WHMARZZOPLCA3RPB4HKWF2DTYPVT3XID65`](https://stellar.expert/explorer/testnet/contract/CAZYRJXKZXTXJKTYVWCRD5WHMARZZOPLCA3RPB4HKWF2DTYPVT3XID65)
+  * **Deployment Tx**: [`126d2087d05e9b...`](https://stellar.expert/explorer/testnet/tx/126d2087d05e9b71b1b34060961a082bd70d5def625445d49ad367e3c9fcb768)
 * 🔐 **Aethyr Escrow Contract** — Freelancer milestone escrows with:
   * **Milestone submission** by freelancers with on-chain timestamp tracking.
   * **Client dispute** flags that block auto-release.
@@ -283,7 +283,7 @@ Each belt section below maps **1:1** against the [Belt Requirements](./docs/BELT
 
 | Artifact | Value |
 |:---------|:------|
-| **Verified Escrow Contract** | [`CCJ7DVF32OZI5KTUOQPY5JIJJVK2HYU7YTOW6QMNIMAVIBMU77T7GNPM`](https://stellar.expert/explorer/testnet/contract/CCJ7DVF32OZI5KTUOQPY5JIJJVK2HYU7YTOW6QMNIMAVIBMU77T7GNPM) |
+| **Verified Escrow Contract** | [`CAZYRJXKZXTXJKTYVWCRD5WHMARZZOPLCA3RPB4HKWF2DTYPVT3XID65`](https://stellar.expert/explorer/testnet/contract/CAZYRJXKZXTXJKTYVWCRD5WHMARZZOPLCA3RPB4HKWF2DTYPVT3XID65) |
 | **Inter-Contract Call Tx Hash** | [`cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623`](https://stellar.expert/explorer/testnet/tx/cf417f87e58e3a4cc53d4ee572115474afea0568609fbde6e49df2d8c5d14623) |
 
 #### Submission Assets

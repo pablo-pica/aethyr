@@ -159,8 +159,10 @@ impl AethyrEscrowTrait for AethyrEscrow {
         let token_client = token::Client::new(&env, &token);
         token_client.transfer(&sender, &env.current_contract_address(), &amount);
 
-        // Generate unique escrow ID
-        let escrow_id: BytesN<32> = env.prng().gen();
+        use soroban_sdk::xdr::ToXdr;
+        // Generate deterministic unique escrow ID by hashing the inputs
+        let salt_data = (sender.clone(), receiver.clone(), token.clone(), amount, milestones.clone());
+        let escrow_id: BytesN<32> = env.crypto().sha256(&salt_data.to_xdr(&env)).into();
 
         let escrow = Escrow {
             sender: sender.clone(),

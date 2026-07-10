@@ -204,7 +204,7 @@
               "function_name": "release_milestone",
               "args": [
                 {
-                  "bytes": "524ee29b9c71075ed2e71f310e269e1d77a9434a0021e5057c588e9b64fc587c"
+                  "bytes": "042cf307bf6def5289ae4d2be5fadd2a10a759ca405301448ef9a35e5f10d1ea"
                 },
                 {
                   "u32": 0
@@ -232,7 +232,7 @@
               "function_name": "release_milestone",
               "args": [
                 {
-                  "bytes": "524ee29b9c71075ed2e71f310e269e1d77a9434a0021e5057c588e9b64fc587c"
+                  "bytes": "042cf307bf6def5289ae4d2be5fadd2a10a759ca405301448ef9a35e5f10d1ea"
                 },
                 {
                   "u32": 1
@@ -315,7 +315,7 @@
                     "symbol": "Escrow"
                   },
                   {
-                    "bytes": "524ee29b9c71075ed2e71f310e269e1d77a9434a0021e5057c588e9b64fc587c"
+                    "bytes": "042cf307bf6def5289ae4d2be5fadd2a10a759ca405301448ef9a35e5f10d1ea"
                   }
                 ]
               },
