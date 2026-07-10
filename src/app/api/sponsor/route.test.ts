@@ -35,7 +35,7 @@ vi.mock("@stellar/stellar-sdk", async () => {
   }
 
   const mockFromScAddress = vi.fn().mockReturnValue({
-    toString: () => "CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO",
+    toString: () => "CCJ7DVF32OZI5KTUOQPY5JIJJVK2HYU7YTOW6QMNIMAVIBMU77T7GNPM",
   });
 
   return {

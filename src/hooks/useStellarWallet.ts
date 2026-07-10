@@ -409,10 +409,7 @@ export function useStellarWallet() {
 
     try {
       getKit();
-      const contractId = process.env.NEXT_PUBLIC_ROUTER_CONTRACT_ID;
-      if (!contractId) {
-        throw new Error("Router contract ID is not configured.");
-      }
+      const contractId = process.env.NEXT_PUBLIC_ROUTER_CONTRACT_ID || "CA4IPUOL5U5T7LBZRGM476BSJPN2KQUW6D4AVSYDJK2RMVY6EAS7ONQR";
 
       // 1. Load sender account
       const account = await horizonServer.loadAccount(currentAddress);
@@ -580,10 +577,7 @@ export function useStellarWallet() {
 
     try {
       getKit();
-      const contractId = process.env.NEXT_PUBLIC_ROUTER_CONTRACT_ID;
-      if (!contractId) {
-        throw new Error("Router contract ID is not configured.");
-      }
+      const contractId = process.env.NEXT_PUBLIC_ROUTER_CONTRACT_ID || "CA4IPUOL5U5T7LBZRGM476BSJPN2KQUW6D4AVSYDJK2RMVY6EAS7ONQR";
 
       const account = await horizonServer.loadAccount(currentAddress);
       const fee = await horizonServer.fetchBaseFee();

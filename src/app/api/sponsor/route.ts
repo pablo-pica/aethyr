@@ -57,9 +57,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid transaction type for fee sponsorship" }, { status: 400 });
     }
 
-    // Verify that all operations target approved contract addresses (Aethyr Escrow or Router)
-    const allowedEscrowId = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ID || "CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO";
-    const allowedRouterId = process.env.NEXT_PUBLIC_ROUTER_CONTRACT_ID;
+    const allowedEscrowId = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ID || "CCJ7DVF32OZI5KTUOQPY5JIJJVK2HYU7YTOW6QMNIMAVIBMU77T7GNPM";
+    const allowedRouterId = process.env.NEXT_PUBLIC_ROUTER_CONTRACT_ID || "CA4IPUOL5U5T7LBZRGM476BSJPN2KQUW6D4AVSYDJK2RMVY6EAS7ONQR";
 
     for (const op of innerTx.operations) {
       if (op.type !== "invokeHostFunction") {
