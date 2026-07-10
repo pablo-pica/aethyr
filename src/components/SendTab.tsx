@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { SendHorizontal, ArrowUpRight, Coins, Sparkles, Check, Copy } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import CustomNumberInput from "./ui/CustomNumberInput";
 import { parseAiIntent } from "@/lib/aiParser";
 import { validateStellarAddress } from "@/lib/utils";
@@ -127,54 +128,81 @@ export default function SendTab({
 
       {/* 2. AI Smart Strip (Teal-tinted glass card, collapsible) */}
       {isAiEnabled && isConnected && txStatus === "idle" && (
-        <div className="rounded-xl border border-teal-500/15 bg-teal-950/10 backdrop-blur-md overflow-hidden transition-all duration-300" data-testid="ai-smart-strip">
-          {!aiExpanded ? (
-            <button
-              type="button"
-              onClick={() => setAiExpanded(true)}
-              className="w-full h-12 px-4 flex items-center justify-between text-xs text-slate-300 hover:text-slate-100 transition-colors focus-ring cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-teal-400 animate-pulse" />
-                <span className="font-medium text-slate-400">
-                  AI Assist: <span className="text-slate-200">{placeholders[phIdx]}</span>
-                </span>
-              </div>
-              <span className="text-[10px] text-teal-400 font-bold">Expand</span>
-            </button>
-          ) : (
-            <div className="p-3.5 space-y-3">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-teal-400" />
-                  <span>AI Smart Assist Console</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setAiExpanded(false)}
-                  className="text-slate-400 hover:text-slate-200 text-[10px]"
-                >
-                  Collapse
-                </button>
-              </div>
-              <textarea
-                value={aiInput}
-                onChange={(e) => setAiInput(e.target.value)}
-                placeholder="e.g. Send 50 XLM to GBRP..."
-                rows={2}
-                className="w-full p-2.5 rounded-xl bg-space-950/80 border border-space-700/60 focus:border-teal-500/30 text-xs text-slate-100 placeholder-slate-500 outline-none resize-none transition-all"
-              />
-              <button
+        <motion.div
+          layout
+          transition={{ layout: { type: "spring", stiffness: 350, damping: 30 } }}
+          className="rounded-xl border border-teal-500/15 bg-teal-950/10 backdrop-blur-md overflow-hidden transition-all duration-300"
+          data-testid="ai-smart-strip"
+        >
+          <AnimatePresence mode="wait">
+            {!aiExpanded ? (
+              <motion.button
+                key="collapsed"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
                 type="button"
-                onClick={handleAiParse}
-                className="w-full h-9 rounded-lg bg-teal-500/10 border border-teal-500/30 hover:bg-teal-500/20 text-xs font-bold text-teal-400 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1"
+                onClick={() => setAiExpanded(true)}
+                className="w-full h-12 px-4 flex items-center justify-between text-xs text-slate-300 hover:text-slate-100 focus-ring cursor-pointer border border-transparent hover:bg-teal-500/10 hover:border-teal-500/30 transition-all duration-200 hover:shadow-[0_0_12px_rgba(45,212,191,0.08)]"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                Parse Command
-              </button>
-            </div>
-          )}
-        </div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-teal-400 animate-pulse" />
+                  <span className="font-medium text-slate-400">
+                    AI Assist: <span className="text-slate-200">{placeholders[phIdx]}</span>
+                  </span>
+                </div>
+                <motion.span
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="text-[10px] text-teal-400 font-bold inline-block"
+                >
+                  Expand
+                </motion.span>
+              </motion.button>
+            ) : (
+              <motion.div
+                key="expanded"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="p-3.5 space-y-3"
+              >
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-teal-400" />
+                    <span>AI Smart Assist Console</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAiExpanded(false)}
+                    className="text-slate-400 hover:text-slate-200 text-[10px]"
+                  >
+                    Collapse
+                  </button>
+                </div>
+                <textarea
+                  value={aiInput}
+                  onChange={(e) => setAiInput(e.target.value)}
+                  placeholder="e.g. Send 50 XLM to GBRP..."
+                  rows={2}
+                  className="w-full p-2.5 rounded-xl bg-space-950/80 border border-space-700/60 focus:border-teal-500/30 text-xs text-slate-100 placeholder-slate-500 outline-none resize-none transition-all"
+                />
+                <motion.button
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  type="button"
+                  onClick={handleAiParse}
+                  className="w-full h-9 rounded-lg bg-teal-500/10 border border-teal-500/30 hover:bg-teal-500/20 text-xs font-bold text-teal-400 transition-all cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Parse Command
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       )}
 
       {/* 3. Main Transfer Form */}
