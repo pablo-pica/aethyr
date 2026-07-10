@@ -7,7 +7,7 @@ This is a living document updated autonomously by agents at the end of each task
 ## ⚡ Active Task
 
 ```yaml
-Current Task: "AI Assist Button Animation in SendTab"
+Current Task: "AI Assist Sparkles Animation Consistency"
 Assigned Agent: Builder
 Status: "Completed"
 ```
@@ -92,6 +92,7 @@ Status: "Completed"
 ## 📜 Audit Logs
 
 ### 2026-07-10
+- **Builder**: Updated the Sparkles icon's animation when the AI Assist strip is collapsed in SendTab.tsx to use the premium animate-pulse-glow class for visual consistency. All Vitest unit tests pass and ESLint runs cleanly.
 - **Builder**: Implemented layout and fade-in animations for the AI Smart Strip, collapsed AI Assist button, expanded console container, and hover scale/tap animations for the Expand label and Parse Command button using framer-motion in SendTab.tsx. All 55 Vitest unit tests pass and compile cleanly.
 - **Builder**: Refactored expanded details motion.div in ActivityTab.tsx to prevent layout jumps by moving layout/design padding, border, and typography classes into an inner wrapper div, keeping the animation smooth.
 - **Checker**: Completed full audit for 'Redesign Bug Fixes & Milestone Resplit' task. Verified all 11 cargo contract tests pass successfully (7 in aethyr-escrow, 4 in aethyr-router) and all 55 frontend tests ('npm run test') pass. Verified next dev server on port 3000 is active. Ran Playwright mobile viewport (390x844) test asserting that the header, active tabs ('Send', 'Escrow', 'Activity', 'Settings') are functional, and that selecting settings custom slippage tolerance displays correctly. Screenshots updated in `docs/assets/`. Active Task status set to 'Audit Passed'.

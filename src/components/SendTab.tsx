@@ -147,7 +147,7 @@ export default function SendTab({
                 className="w-full h-12 px-4 flex items-center justify-between text-xs text-slate-300 hover:text-slate-100 focus-ring cursor-pointer border border-transparent hover:bg-teal-500/10 hover:border-teal-500/30 transition-all duration-200 hover:shadow-[0_0_12px_rgba(45,212,191,0.08)]"
               >
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-teal-400 animate-pulse" />
+                  <Sparkles className="w-4 h-4 text-teal-400 animate-pulse-glow" />
                   <span className="font-medium text-slate-400">
                     AI Assist: <span className="text-slate-200">{placeholders[phIdx]}</span>
                   </span>
