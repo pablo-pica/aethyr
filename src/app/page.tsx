@@ -39,6 +39,40 @@ interface TransactionItem {
   isExpired?: boolean;
 }
 
+const MOCK_TRANSACTIONS: TransactionItem[] = [
+  {
+    id: "tx-1",
+    type: "escrow",
+    status: "success",
+    timestamp: "Today, 11:20 AM",
+    amountIn: "250.00",
+    assetIn: "USDC",
+    description: "Milestone Escrow #1 (USD to PHP)",
+    txHash: "a809f4b93478d5e6f7a8b9c0d1e2f3f4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0",
+    escrowContract: "CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO",
+    escrowId: "8a92b3c4d5e6f7a8b9c0d1e2f3f4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2",
+    senderAddress: "GBRPYHIL2CIYAOSRIWRMQHEBOZJ7PAGB37NMQ22FQGSNLUY65VOUAIV2",
+    receiverAddress: "GBRPYHIL2CIYAOSRIWRMQHEBOZJ7PAGB37NMQ22FQGSNLUY65VOUAIV2",
+    milestones: [
+      { description: "UI Design mockups", payout_weight: 3000, is_completed: false, is_disputed: false, submitted_at: 0 },
+      { description: "Integration with Soroban", payout_weight: 7000, is_completed: false, is_disputed: false, submitted_at: 0 }
+    ],
+    isExpired: true,
+  },
+  {
+    id: "tx-2",
+    type: "swap",
+    status: "success",
+    timestamp: "Yesterday, 3:15 PM",
+    amountIn: "50.00",
+    assetIn: "XLM",
+    amountOut: "5.85",
+    assetOut: "USDC",
+    description: "Asset Swap (DEX Routing)",
+    txHash: "bf82d1c8f89e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3f4e5a6b7c8d9e0f1",
+  },
+];
+
 export default function Dashboard() {
   const {
     isConnected,
@@ -100,6 +134,15 @@ export default function Dashboard() {
       showToast(walletError, "error");
     }
   }, [walletError, showToast]);
+
+  // Load mock data when connected to Mock Sandbox wallet, keep empty for real wallets
+  useEffect(() => {
+    if (isConnected && address === "GBZXN7PIRZGNMHGA7MUUUF4GWPY5ALY4UV2GL6VJGIQRXFDNMADIXXXX") {
+      setTransactions(MOCK_TRANSACTIONS);
+    } else {
+      setTransactions([]);
+    }
+  }, [isConnected, address]);
 
   const [expandedEscrows, setExpandedEscrows] = useState<Record<string, boolean>>({});
 
@@ -242,39 +285,7 @@ export default function Dashboard() {
   };
 
   // Dynamic Transaction Log
-  const [transactions, setTransactions] = useState<TransactionItem[]>([
-    {
-      id: "tx-1",
-      type: "escrow",
-      status: "success",
-      timestamp: "Today, 11:20 AM",
-      amountIn: "250.00",
-      assetIn: "USDC",
-      description: "Milestone Escrow #1 (USD to PHP)",
-      txHash: "a809f4b93478d5e6f7a8b9c0d1e2f3f4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0",
-      escrowContract: "CDXZR77ODWNHHP5BR4BCSRS66FNHQQMUGEHGEFTX2IK4HWOAMC43ZERO",
-      escrowId: "8a92b3c4d5e6f7a8b9c0d1e2f3f4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2",
-      senderAddress: "GBRPYHIL2CIYAOSRIWRMQHEBOZJ7PAGB37NMQ22FQGSNLUY65VOUAIV2",
-      receiverAddress: "GBRPYHIL2CIYAOSRIWRMQHEBOZJ7PAGB37NMQ22FQGSNLUY65VOUAIV2",
-      milestones: [
-        { description: "UI Design mockups", payout_weight: 3000, is_completed: false, is_disputed: false, submitted_at: 0 },
-        { description: "Integration with Soroban", payout_weight: 7000, is_completed: false, is_disputed: false, submitted_at: 0 }
-      ],
-      isExpired: true,
-    },
-    {
-      id: "tx-2",
-      type: "swap",
-      status: "success",
-      timestamp: "Yesterday, 3:15 PM",
-      amountIn: "50.00",
-      assetIn: "XLM",
-      amountOut: "5.85",
-      assetOut: "USDC",
-      description: "Asset Swap (DEX Routing)",
-      txHash: "bf82d1c8f89e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3f4e5a6b7c8d9e0f1",
-    },
-  ]);
+  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
