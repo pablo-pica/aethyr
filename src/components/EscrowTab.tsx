@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Lock, AlertCircle, ChevronDown, ChevronUp, Clock, HelpCircle, Shield, Check, ArrowUpRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Lock, AlertCircle, ChevronDown, ChevronUp, Clock, HelpCircle, Shield, Check, ArrowUpRight, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CustomNumberInput from "./ui/CustomNumberInput";
 import SegmentedControl, { SegmentedOption } from "./ui/SegmentedControl";
@@ -9,6 +9,7 @@ import { InlineConfirmationButton } from "./ui/ConfirmationDialog";
 import MilestoneBuilder, { Milestone } from "./MilestoneBuilder";
 import { validateStellarAddress } from "@/lib/utils";
 import BottomSheet from "./ui/BottomSheet";
+import { parseAiIntent } from "@/lib/aiParser";
 
 interface TransactionItem {
   id: string;
@@ -42,9 +43,9 @@ interface EscrowTabProps {
   handleReleaseMilestone: (txId: string, idx: number) => Promise<void>;
   handleDisputeMilestone: (txId: string, idx: number) => Promise<void>;
   handleAutoReleaseMilestone: (txId: string, idx: number) => Promise<void>;
-  handleRefundEscrow: (txId: string) => Promise<void>;
   onCreateEscrow: (recipient: string, amount: string, milestones: Milestone[]) => Promise<void>;
   showToast: (msg: string, type: "success" | "error" | "info") => void;
+  isAiEnabled?: boolean;
 }
 
 export default function EscrowTab({
@@ -63,6 +64,7 @@ export default function EscrowTab({
   handleRefundEscrow,
   onCreateEscrow,
   showToast,
+  isAiEnabled = true,
 }: EscrowTabProps) {
   const [formExpanded, setFormExpanded] = useState(true);
   const [recipient, setRecipient] = useState("");
@@ -70,6 +72,44 @@ export default function EscrowTab({
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [createLoading, setCreateLoading] = useState(false);
   const [isMilestoneSheetOpen, setIsMilestoneSheetOpen] = useState(false);
+
+  const [aiExpanded, setAiExpanded] = useState(false);
+  const [aiInput, setAiInput] = useState("");
+  const placeholders = [
+    "Escrow 100 USDC to GBFF...",
+    "Lock 500 XLM for UI mockup (30%), integration (70%)",
+    "Create milestone escrow of 1000 PHP to G...",
+  ];
+  const [phIdx, setPhIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPhIdx((prev) => (prev + 1) % placeholders.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleAiParse = () => {
+    if (!aiInput.trim()) return;
+    try {
+      const parsed = parseAiIntent(aiInput);
+      if (parsed.recipient) setRecipient(parsed.recipient);
+      if (parsed.amount) setAmount(parsed.amount);
+      if (parsed.milestones && parsed.milestones.length > 0) {
+        setMilestones(parsed.milestones.map((m: any) => ({
+          description: m.description,
+          payout_weight: m.payout_weight,
+          is_completed: false,
+          is_disputed: false,
+          submitted_at: 0
+        })));
+      }
+      showToast("Escrow parameters pre-filled!", "success");
+      setAiExpanded(false);
+    } catch (err: any) {
+      showToast("Parsing failed: " + err.message, "error");
+    }
+  };
 
   const escrows = transactions.filter((tx) => tx.type === "escrow");
   const [escrowView, setEscrowView] = useState<"create" | "active">(
@@ -156,6 +196,68 @@ export default function EscrowTab({
 
           {escrowView === "create" && (
             <div className="p-5 rounded-2xl glass-card space-y-4 text-left">
+              {/* AI Smart Strip */}
+              {isAiEnabled && (
+                <div
+                  className="rounded-xl border border-teal-500/15 hover:border-teal-500/35 bg-teal-950/10 hover:bg-teal-950/15 backdrop-blur-md overflow-hidden transition-all duration-200 hover:shadow-[0_0_12px_rgba(45,212,191,0.04)] mb-2"
+                  data-testid="ai-smart-strip-escrow"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setAiExpanded(!aiExpanded)}
+                    className="w-full h-12 px-4 flex items-center justify-between text-xs text-slate-300 hover:text-slate-100 focus-ring cursor-pointer transition-colors duration-200"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-teal-400 animate-pulse-glow" />
+                      <span className="font-medium text-slate-400">
+                        AI Assist: <span className="text-slate-200">{placeholders[phIdx]}</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-teal-400 font-bold inline-block">
+                        {aiExpanded ? "Collapse" : "Expand"}
+                      </span>
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 text-teal-400 transition-transform duration-200 shrink-0 ${
+                          aiExpanded ? "rotate-180" : ""
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {aiExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-3.5 pt-0 space-y-3">
+                          <div className="sr-only">AI Smart Assist Console (Escrow)</div>
+                          <textarea
+                            value={aiInput}
+                            onChange={(e) => setAiInput(e.target.value)}
+                            placeholder="e.g. Lock 100 USDC for design (30%), dev (70%)"
+                            rows={2}
+                            className="w-full p-2.5 rounded-xl bg-space-950/80 border border-space-700/60 focus:border-teal-500/30 text-xs text-slate-100 placeholder-slate-500 outline-none resize-none transition-all"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAiParse}
+                            className="w-full h-9 rounded-lg bg-teal-500/10 border border-teal-500/30 hover:bg-teal-500/20 text-xs font-bold text-teal-400 transition-all cursor-pointer flex items-center justify-center gap-1"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            Parse Command
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
               <h4 className="text-base font-bold text-slate-200">Create Escrow Lock</h4>
 
               <form onSubmit={handleCreateSubmit} className="space-y-4 pt-1">

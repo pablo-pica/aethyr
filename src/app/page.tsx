@@ -693,6 +693,7 @@ export default function Dashboard() {
               handleRefundEscrow={handleRefund}
               onCreateEscrow={onCreateEscrow}
               showToast={showToast}
+              isAiEnabled={isAiEnabled}
             />
           )}
 
