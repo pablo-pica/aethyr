@@ -282,11 +282,11 @@ export function useStellarWallet() {
         // Fallback to direct submission
         const signedTransaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);
         const sendResponse = await rpcServer.sendTransaction(signedTransaction);
-        if (sendResponse.status === "ERROR") {
+        if (sendResponse.status !== "PENDING" && sendResponse.status !== "DUPLICATE") {
           const errorMsg = sendResponse.errorResult 
             ? sendResponse.errorResult.toXDR("base64")
             : "Unknown error";
-          throw new Error(`Transaction submission error: ${errorMsg}`);
+          throw new Error(`Transaction submission status [${sendResponse.status}]: ${errorMsg}`);
         }
         txHash = sendResponse.hash;
       }
@@ -295,11 +295,11 @@ export function useStellarWallet() {
       // Fallback to direct submission
       const signedTransaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);
       const sendResponse = await rpcServer.sendTransaction(signedTransaction);
-      if (sendResponse.status === "ERROR") {
+      if (sendResponse.status !== "PENDING" && sendResponse.status !== "DUPLICATE") {
         const errorMsg = sendResponse.errorResult 
           ? sendResponse.errorResult.toXDR("base64")
           : "Unknown error";
-        throw new Error(`Transaction submission error: ${errorMsg}`);
+        throw new Error(`Transaction submission status [${sendResponse.status}]: ${errorMsg}`);
       }
       txHash = sendResponse.hash;
     }
@@ -318,6 +318,10 @@ export function useStellarWallet() {
 
       if (getResponse.status === "FAILED") {
         throw new Error("Transaction execution failed on-chain.");
+      }
+
+      if (getResponse.status === "NOT_FOUND") {
+        throw new Error("Transaction polling timed out. The transaction was not found on-chain.");
       }
 
       try {
