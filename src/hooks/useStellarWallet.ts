@@ -286,7 +286,7 @@ export function useStellarWallet() {
           const errorMsg = sendResponse.errorResult 
             ? sendResponse.errorResult.toXDR("base64")
             : "Unknown error";
-          throw new Error(`Transaction submission status [${sendResponse.status}]: ${errorMsg}`);
+          throw new Error(`Transaction submission error (Status: ${sendResponse.status}): ${errorMsg}`);
         }
         txHash = sendResponse.hash;
       }
@@ -299,7 +299,7 @@ export function useStellarWallet() {
         const errorMsg = sendResponse.errorResult 
           ? sendResponse.errorResult.toXDR("base64")
           : "Unknown error";
-        throw new Error(`Transaction submission status [${sendResponse.status}]: ${errorMsg}`);
+        throw new Error(`Transaction submission error (Status: ${sendResponse.status}): ${errorMsg}`);
       }
       txHash = sendResponse.hash;
     }
