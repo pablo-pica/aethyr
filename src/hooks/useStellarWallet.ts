@@ -547,7 +547,7 @@ export function useStellarWallet() {
     const numBytes = cleanHex.length / 2;
     const byteArray = new Uint8Array(numBytes);
     for (let i = 0; i < numBytes; i++) {
-      byteArray[i] = parseInt(cleanHex.substring(i * 2, 2), 16);
+      byteArray[i] = parseInt(cleanHex.slice(i * 2, i * 2 + 2), 16);
     }
     return byteArray;
   };
