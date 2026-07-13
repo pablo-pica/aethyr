@@ -65,7 +65,7 @@ Status: "Audit Passed"
 - [x] Code frontend unit tests (Vitest) `[AI]`
 - [x] Verify 10+ meaningful commits are checked in locally (conventional commits) `[AI]`
 - [x] Verify CI/CD pipeline is configured green `[AI]`
-- [ ] Record 1-2 min Loom demo video of the dApp `[YOU]`
+- [x] Record 1-2 min Loom demo video of the dApp (Moved to local assets) `[YOU]`
 - [x] Capture responsive UI mobile screenshots `[YOU]`
 - [x] Complete Orange Belt README assets integration `[AI]`
 - [x] Deploy production release to Vercel `[YOU]`
@@ -82,8 +82,7 @@ Status: "Audit Passed"
 
 ## ⚠️ Warning Logs
 
-- **Git Remote Push**: Pusher encountered authentication limits due to expired GitHub CLI credentials. Local commits are successfully recorded. Please run `gh auth login` and `git push origin dev-branch` when you return.
-- **Missing Demo Video**: The 1-2 minute Loom walkthrough video link is required to complete the submission.
+- **Git Remote Push**: Pusher encountered authentication limits due to expired GitHub CLI credentials. Local commits are successfully recorded. Please run `git push` to upload the commits and the walkthrough video to GitHub, which will trigger the live deployment and CI/CD validation.
 
 ---
 
