@@ -291,9 +291,9 @@ Each belt section below maps **1:1** against the [Belt Requirements](./docs/BELT
 | Asset | Screenshot |
 |:------|:----------:|
 | **Mobile viewport** — responsive UI on small screen | <img src="docs/assets/screen1.png" width="220" alt="Mobile Viewport"> |
-| **GitHub Actions CI/CD** — green/passing pipeline | *📸 [Pending: push to GitHub, then screenshot the Actions tab]* |
-| **Test suite output** — 11 Rust + 59 Vitest passing | *📸 [Pending: screenshot terminal after running `cargo test` + `npm test`]* |
-| **Video walkthrough** (1-2 min) | *🎥 [Pending: record and upload to Loom/YouTube]* |
+| **GitHub Actions CI/CD** — green/passing pipeline | *📸 [Pending: push to GitHub, save screenshot as `docs/assets/screen8_ci.png` and link here]* |
+| **Test suite output** — 11 Rust + 59 Vitest passing | *📸 [Pending: screenshot terminal, save as `docs/assets/screen9_tests.png` and link here]* |
+| **Video walkthrough** | [Walkthrough Video (MP4)](./docs/assets/2026-07-13%2016-13-01.mp4) |
 
 </details>
 
