@@ -67,7 +67,7 @@ Traditional international remittance networks impose significant overhead throug
 ## 🎬 Live Demo & Presentation
 
 * 🌐 **Live Application**: [Aethyr on Vercel](https://aethyr-pica.vercel.app/)
-* 🎥 **Video Walkthrough (1-2 Min)**: [Aethyr Demo Video](https://loom.com/your-video-link)
+* 🎥 **Video Walkthrough**: [Local Walkthrough Video (MP4)](./docs/assets/2026-07-13%2016-13-01.mp4)
 
 ---
 
