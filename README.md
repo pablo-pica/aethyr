@@ -297,6 +297,8 @@ Each belt section below maps **1:1** against the [Belt Requirements](./docs/BELT
 
 </details>
 
+---
+
 ### 🖼️ Visual Showcase — App Interface & Roles
 
 <details>
