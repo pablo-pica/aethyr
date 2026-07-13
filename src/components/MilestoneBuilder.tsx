@@ -11,6 +11,9 @@ export interface Milestone {
   is_completed: boolean;
   is_disputed: boolean;
   submitted_at: number;
+  submitTxHash?: string;
+  releaseTxHash?: string;
+  disputeTxHash?: string;
 }
 
 interface MilestoneBuilderProps {

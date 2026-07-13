@@ -169,12 +169,17 @@ export default function Dashboard() {
     }
     try {
       showToast("Releasing milestone funds...", "info");
-      await releaseMilestone(tx.escrowContract, tx.escrowId, milestoneIndex);
+      const result = await releaseMilestone(tx.escrowContract, tx.escrowId, milestoneIndex);
+      const hash = result?.hash;
       setTransactions((prev) =>
         prev.map((t) => {
           if (t.id === txId && t.milestones) {
             const updated = [...t.milestones];
-            updated[milestoneIndex] = { ...updated[milestoneIndex], is_completed: true };
+            updated[milestoneIndex] = {
+              ...updated[milestoneIndex],
+              is_completed: true,
+              releaseTxHash: hash,
+            };
             return { ...t, milestones: updated };
           }
           return t;
@@ -217,7 +222,8 @@ export default function Dashboard() {
     }
     try {
       showToast("Submitting milestone work...", "info");
-      await submitMilestone(tx.escrowContract, tx.escrowId, milestoneIndex);
+      const result = await submitMilestone(tx.escrowContract, tx.escrowId, milestoneIndex);
+      const hash = result?.hash;
       setTransactions((prev) =>
         prev.map((t) => {
           if (t.id === txId && t.milestones) {
@@ -225,6 +231,7 @@ export default function Dashboard() {
             updated[milestoneIndex] = {
               ...updated[milestoneIndex],
               submitted_at: Math.floor(Date.now() / 1000),
+              submitTxHash: hash,
             };
             return { ...t, milestones: updated };
           }
@@ -245,7 +252,8 @@ export default function Dashboard() {
     }
     try {
       showToast("Flagging dispute...", "info");
-      await disputeMilestone(tx.escrowContract, tx.escrowId, milestoneIndex);
+      const result = await disputeMilestone(tx.escrowContract, tx.escrowId, milestoneIndex);
+      const hash = result?.hash;
       setTransactions((prev) =>
         prev.map((t) => {
           if (t.id === txId && t.milestones) {
@@ -253,6 +261,7 @@ export default function Dashboard() {
             updated[milestoneIndex] = {
               ...updated[milestoneIndex],
               is_disputed: true,
+              disputeTxHash: hash,
             };
             return { ...t, milestones: updated };
           }
@@ -273,7 +282,8 @@ export default function Dashboard() {
     }
     try {
       showToast("Triggering auto-release...", "info");
-      await autoReleaseMilestone(tx.escrowContract, tx.escrowId, milestoneIndex);
+      const result = await autoReleaseMilestone(tx.escrowContract, tx.escrowId, milestoneIndex);
+      const hash = result?.hash;
       setTransactions((prev) =>
         prev.map((t) => {
           if (t.id === txId && t.milestones) {
@@ -283,6 +293,7 @@ export default function Dashboard() {
               is_completed: true,
               submitted_at: 0,
               is_disputed: false,
+              releaseTxHash: hash,
             };
             return { ...t, milestones: updated };
           }

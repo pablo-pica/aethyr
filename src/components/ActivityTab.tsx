@@ -4,13 +4,7 @@ import React, { useState } from "react";
 import { Clock, ReceiptText, ExternalLink, ArrowRight, CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface Milestone {
-  description: string;
-  payout_weight: number;
-  is_completed: boolean;
-  is_disputed: boolean;
-  submitted_at: number;
-}
+import { Milestone } from "./MilestoneBuilder";
 
 interface TransactionItem {
   id: string;
@@ -249,6 +243,64 @@ export default function ActivityTab({
                               >
                                 <span>Explorer ↗</span>
                               </a>
+                            </div>
+                          )}
+
+                          {tx.milestones && tx.milestones.length > 0 && (
+                            <div className="mt-3.5 pt-3.5 border-t border-space-800/80 space-y-3">
+                              <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] select-none">Milestones Timeline</span>
+                              <div className="relative pl-3.5 border-l border-space-700/60 space-y-3.5 mt-2">
+                                {tx.milestones.map((m, idx) => {
+                                  let statusText = "Pending";
+                                  let statusColor = "text-slate-500";
+                                  let dotColor = "bg-slate-700 border-space-800";
+                                  let subTxHash = "";
+
+                                  if (m.is_completed) {
+                                    statusText = "Released";
+                                    statusColor = "text-teal-400";
+                                    dotColor = "bg-teal-400 border-teal-500/20";
+                                    subTxHash = m.releaseTxHash || "";
+                                  } else if (m.is_disputed) {
+                                    statusText = "Disputed";
+                                    statusColor = "text-rose-400";
+                                    dotColor = "bg-rose-400 border-rose-500/20";
+                                    subTxHash = m.disputeTxHash || "";
+                                  } else if (m.submitted_at > 0) {
+                                    statusText = "Work Submitted";
+                                    statusColor = "text-amber-400";
+                                    dotColor = "bg-amber-400 border-amber-500/20";
+                                    subTxHash = m.submitTxHash || "";
+                                  }
+
+                                  return (
+                                    <div key={idx} className="relative space-y-1 text-left">
+                                      {/* Bullet dot */}
+                                      <div className={`absolute -left-[20px] top-1 w-2.5 h-2.5 rounded-full ${dotColor} border shadow-sm`} />
+                                      
+                                      <div className="flex justify-between items-baseline gap-2">
+                                        <span className="font-bold text-slate-200 text-[10px]">{idx + 1}. {m.description}</span>
+                                        <span className={`text-[9px] font-bold tracking-wide uppercase ${statusColor}`}>{statusText}</span>
+                                      </div>
+                                      
+                                      <div className="flex justify-between items-center text-[9px] text-slate-500">
+                                        <span>Weight: {(m.payout_weight / 100).toFixed(0)}%</span>
+                                        {subTxHash && (
+                                          <a
+                                            href={`https://stellar.expert/explorer/testnet/tx/${subTxHash}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-teal-400/80 hover:text-teal-400 flex items-center gap-0.5 hover:underline font-mono"
+                                          >
+                                            <span>Tx: {subTxHash.slice(0, 4)}...{subTxHash.slice(-4)}</span>
+                                            <ExternalLink className="w-2.5 h-2.5" />
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           )}
                         </div>
