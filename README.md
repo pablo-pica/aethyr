@@ -290,10 +290,19 @@ Each belt section below maps **1:1** against the [Belt Requirements](./docs/BELT
 
 | Asset | Screenshot |
 |:------|:----------:|
-| **Mobile viewport** — responsive UI on small screen | <img src="docs/assets/screen1.png" width="220" alt="Mobile Viewport"> |
-| **GitHub Actions CI/CD** — green/passing pipeline | *📸 [Pending: push to GitHub, save screenshot as `docs/assets/screen8_ci.png` and link here]* |
-| **Test suite output** — 11 Rust + 59 Vitest passing | *📸 [Pending: screenshot terminal, save as `docs/assets/screen9_tests.png` and link here]* |
-| **Video walkthrough** | [Walkthrough Video (MP4)](./docs/assets/2026-07-13%2016-13-01.mp4) |
+| **Mobile viewport** — responsive UI on small screen | <img src="docs/assets/screen7.png" width="220" alt="Mobile Viewport"> |
+| **GitHub Actions CI/CD** — green/passing pipeline | <img src="docs/assets/screen8.png" width="220" alt="GitHub Actions CI/CD"> |
+| **Test suite output** — 11 Rust + 59 Vitest passing | <img src="docs/assets/screen9.png" width="220" alt="Test Suite Output"> |
+| **Video walkthrough** | [Walkthrough Video (MP4)](./docs/assets/video_demo.mp4) |
+
+#### Extra Showcase Views
+
+| View | Screenshot |
+|:-----|:----------:|
+| **Create Escrow** — client configuration form | <img src="docs/assets/createescrow.png" width="220" alt="Create Escrow"> |
+| **Milestone Builder** — visual milestone designer sheet | <img src="docs/assets/configuremilestones.png" width="220" alt="Milestone Builder"> |
+| **Active Escrows** — freelancer task tracking view | <img src="docs/assets/activeescrows.png" width="220" alt="Active Escrows"> |
+| **Settings Tab** — slippage control, network toggles, AI configs | <img src="docs/assets/settingstab.png" width="220" alt="Settings Tab"> |
 
 </details>
 
